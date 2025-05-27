@@ -156,8 +156,7 @@
         debugElement.textContent = `R:${Math.round(valueRed)} B:${roundedValue}`;
       }
       if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ x: x, y: normalizedValue }));
-        // Optionally: ws.send(JSON.stringify({ ball, y: normalizedValue }));
+        ws.send(JSON.stringify({ ball: ball, x: x, y: normalizedValue }));
       }
     }
   </script>
