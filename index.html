@@ -31,82 +31,133 @@
 </head>
 <body>
   <div id="debug">0</div>
-  
   <script>
     // WebSocket connection
     const ws = new WebSocket('wss://62bf-2001-1388-53a0-355d-e09c-d32e-17fd-ddc2.ngrok-free.app');
     ws.onopen = () => console.log("WebSocket conectado");
     ws.onerror = (e) => console.error("WebSocket error:", e);
-    
-    // Variables for press tracking
-    let value = 0;
-    let isPressed = false;
-    let pressStartTime = 0;
-    let debugElement = document.getElementById('debug');
-    let fallVelocity = 0;
+
+    // Variables for each half
+    let valueRed = 0, valueBlue = 0;
+    let isPressedRed = false, isPressedBlue = false;
+    let pressStartTimeRed = 0, pressStartTimeBlue = 0;
+    let fallVelocityRed = 0, fallVelocityBlue = 0;
     const GRAVITY = 0.68;
-    
+    let debugElement = document.getElementById('debug');
+
+    // Helper to get touch/click position
+    function getHalf(e) {
+      let y;
+      if (e.touches && e.touches.length > 0) {
+        y = e.touches[0].clientY;
+      } else {
+        y = e.clientY;
+      }
+      return (y < window.innerHeight / 2) ? 'red' : 'blue';
+    }
+
     // Event handlers for press/touch
-    document.addEventListener('mousedown', startPress);
-    document.addEventListener('mouseup', endPress);
-    document.addEventListener('touchstart', startPress);
-    document.addEventListener('touchend', endPress);
-    document.addEventListener('touchcancel', endPress);
-    
-    function startPress(e) {
-      e.preventDefault();
-      isPressed = true;
-      pressStartTime = Date.now();
-      updateValue();
+    document.addEventListener('mousedown', function(e) {
+      const half = getHalf(e);
+      if (half === 'red') startPressRed();
+      else startPressBlue();
+    });
+    document.addEventListener('mouseup', function(e) {
+      const half = getHalf(e);
+      if (half === 'red') endPressRed();
+      else endPressBlue();
+    });
+    document.addEventListener('touchstart', function(e) {
+      const half = getHalf(e);
+      if (half === 'red') startPressRed();
+      else startPressBlue();
+    });
+    document.addEventListener('touchend', function(e) {
+      const half = getHalf(e);
+      if (half === 'red') endPressRed();
+      else endPressBlue();
+    });
+    document.addEventListener('touchcancel', function(e) {
+      const half = getHalf(e);
+      if (half === 'red') endPressRed();
+      else endPressBlue();
+    });
+
+    // Red ball logic (top half)
+    function startPressRed() {
+      isPressedRed = true;
+      pressStartTimeRed = Date.now();
+      updateValueRed();
     }
-    
-    function endPress() {
-      isPressed = false;
-      fallVelocity = 0;
-      animateFall();
+    function endPressRed() {
+      isPressedRed = false;
+      fallVelocityRed = 0;
+      animateFallRed();
     }
-    
-    function updateValue() {
-      if (!isPressed) return;
-      
-      // Calculate elapsed time since press started
-      const elapsedTime = (Date.now() - pressStartTime) / 1000;  // seconds
-      
-      // Start slow, then accelerate based on hold duration
-      const accelerationFactor = Math.min(elapsedTime / 5, 1);  // max acceleration after 5 seconds
-      const increment = 0.2 * (1 + 9 * accelerationFactor);  // starts at 0.2, goes up to 2.0
-      
-      // Increase value
-      value = Math.min(100, value + increment);
-      
-      // Send and display value
-      sendValue();
-      
-      // Loop if still pressed
-      if (isPressed) {
-        requestAnimationFrame(updateValue);
+    function updateValueRed() {
+      if (!isPressedRed) return;
+      const elapsedTime = (Date.now() - pressStartTimeRed) / 1000;
+      const accelerationFactor = Math.min(elapsedTime / 5, 1);
+      const increment = 0.2 * (1 + 9 * accelerationFactor);
+      valueRed = Math.min(100, valueRed + increment);
+      sendValue('red');
+      if (isPressedRed) requestAnimationFrame(updateValueRed);
+    }
+    function animateFallRed() {
+      if (isPressedRed) return;
+      fallVelocityRed += GRAVITY * 0.05;
+      valueRed = Math.max(0, valueRed - fallVelocityRed);
+      sendValue('red');
+      if (valueRed <= 0) { valueRed = 0; return; }
+      requestAnimationFrame(animateFallRed);
+    }
+
+    // Blue ball logic (bottom half)
+    function startPressBlue() {
+      isPressedBlue = true;
+      pressStartTimeBlue = Date.now();
+      updateValueBlue();
+    }
+    function endPressBlue() {
+      isPressedBlue = false;
+      fallVelocityBlue = 0;
+      animateFallBlue();
+    }
+    function updateValueBlue() {
+      if (!isPressedBlue) return;
+      const elapsedTime = (Date.now() - pressStartTimeBlue) / 1000;
+      const accelerationFactor = Math.min(elapsedTime / 5, 1);
+      const increment = 0.2 * (1 + 9 * accelerationFactor);
+      valueBlue = Math.min(100, valueBlue + increment);
+      sendValue('blue');
+      if (isPressedBlue) requestAnimationFrame(updateValueBlue);
+    }
+    function animateFallBlue() {
+      if (isPressedBlue) return;
+      fallVelocityBlue += GRAVITY * 0.05;
+      valueBlue = Math.max(0, valueBlue - fallVelocityBlue);
+      sendValue('blue');
+      if (valueBlue <= 0) { valueBlue = 0; return; }
+      requestAnimationFrame(animateFallBlue);
+    }
+
+    // Send value for the correct ball
+    function sendValue(ball) {
+      let roundedValue, normalizedValue, x;
+      if (ball === 'red') {
+        roundedValue = Math.round(valueRed);
+        normalizedValue = roundedValue / 100;
+        x = 0.25; // left side for red
+        debugElement.textContent = `R:${roundedValue} B:${Math.round(valueBlue)}`;
+      } else {
+        roundedValue = Math.round(valueBlue);
+        normalizedValue = roundedValue / 100;
+        x = 0.75; // right side for blue
+        debugElement.textContent = `R:${Math.round(valueRed)} B:${roundedValue}`;
       }
-    }
-    
-    function animateFall() {
-      if (isPressed) return;
-      fallVelocity += GRAVITY * 0.05;
-      value = Math.max(0, value - fallVelocity);
-      sendValue();
-      if (value <= 0) {
-        value = 0;
-        return;
-      }
-      requestAnimationFrame(animateFall);
-    }
-    
-    function sendValue() {
-      const roundedValue = Math.round(value);
-      debugElement.textContent = roundedValue;
       if (ws.readyState === WebSocket.OPEN) {
-        const normalizedValue = roundedValue / 100;
-        ws.send(JSON.stringify({ x: 0.5, y: normalizedValue }));
-        console.log("Enviado:", roundedValue);
+        ws.send(JSON.stringify({ x: x, y: normalizedValue }));
+        // Optionally: ws.send(JSON.stringify({ ball, y: normalizedValue }));
       }
     }
   </script>
