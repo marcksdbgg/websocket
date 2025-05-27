@@ -56,44 +56,56 @@
       return (y < window.innerHeight / 2) ? 'red' : 'blue';
     }
 
-    // Event handlers for press/touch
+    // Permitir multitouch y mouse simultáneo
     document.addEventListener('mousedown', function(e) {
-      const half = getHalf(e);
-      if (half === 'red') startPressRed();
-      else startPressBlue();
+      if (getHalf(e) === 'red') startPressRed();
+      if (getHalf(e) === 'blue') startPressBlue();
     });
     document.addEventListener('mouseup', function(e) {
-      const half = getHalf(e);
-      if (half === 'red') endPressRed();
-      else endPressBlue();
+      if (getHalf(e) === 'red') endPressRed();
+      if (getHalf(e) === 'blue') endPressBlue();
     });
     document.addEventListener('touchstart', function(e) {
-      const half = getHalf(e);
-      if (half === 'red') startPressRed();
-      else startPressBlue();
+      for (let i = 0; i < e.touches.length; i++) {
+        const y = e.touches[i].clientY;
+        if (y < window.innerHeight / 2) isPressedRed = true;
+        else isPressedBlue = true;
+      }
+      if (isPressedRed && !pressStartTimeRed) { pressStartTimeRed = Date.now(); fallVelocityRed = 0; updateValueRed(); }
+      if (isPressedBlue && !pressStartTimeBlue) { pressStartTimeBlue = Date.now(); fallVelocityBlue = 0; updateValueBlue(); }
     });
     document.addEventListener('touchend', function(e) {
-      const half = getHalf(e);
-      if (half === 'red') endPressRed();
-      else endPressBlue();
+      // Verificar si quedan dedos en cada mitad
+      let stillRed = false, stillBlue = false;
+      for (let i = 0; i < e.touches.length; i++) {
+        const y = e.touches[i].clientY;
+        if (y < window.innerHeight / 2) stillRed = true;
+        else stillBlue = true;
+      }
+      if (!stillRed) { isPressedRed = false; fallVelocityRed = 0; animateFallRed(); pressStartTimeRed = 0; }
+      if (!stillBlue) { isPressedBlue = false; fallVelocityBlue = 0; animateFallBlue(); pressStartTimeBlue = 0; }
     });
     document.addEventListener('touchcancel', function(e) {
-      const half = getHalf(e);
-      if (half === 'red') endPressRed();
-      else endPressBlue();
+      isPressedRed = false; fallVelocityRed = 0; animateFallRed(); pressStartTimeRed = 0;
+      isPressedBlue = false; fallVelocityBlue = 0; animateFallBlue(); pressStartTimeBlue = 0;
     });
 
     // Red ball logic (top half)
     function startPressRed() {
-      isPressedRed = true;
-      pressStartTimeRed = Date.now();
-      fallVelocityRed = 0;
-      updateValueRed();
+      if (!isPressedRed) {
+        isPressedRed = true;
+        pressStartTimeRed = Date.now();
+        fallVelocityRed = 0;
+        updateValueRed();
+      }
     }
     function endPressRed() {
-      isPressedRed = false;
-      fallVelocityRed = 0;
-      animateFallRed();
+      if (isPressedRed) {
+        isPressedRed = false;
+        fallVelocityRed = 0;
+        animateFallRed();
+        pressStartTimeRed = 0;
+      }
     }
     function updateValueRed() {
       if (!isPressedRed) return;
@@ -116,15 +128,20 @@
 
     // Blue ball logic (bottom half)
     function startPressBlue() {
-      isPressedBlue = true;
-      pressStartTimeBlue = Date.now();
-      fallVelocityBlue = 0;
-      updateValueBlue();
+      if (!isPressedBlue) {
+        isPressedBlue = true;
+        pressStartTimeBlue = Date.now();
+        fallVelocityBlue = 0;
+        updateValueBlue();
+      }
     }
     function endPressBlue() {
-      isPressedBlue = false;
-      fallVelocityBlue = 0;
-      animateFallBlue();
+      if (isPressedBlue) {
+        isPressedBlue = false;
+        fallVelocityBlue = 0;
+        animateFallBlue();
+        pressStartTimeBlue = 0;
+      }
     }
     function updateValueBlue() {
       if (!isPressedBlue) return;
