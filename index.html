@@ -87,12 +87,13 @@
     function startPressRed() {
       isPressedRed = true;
       pressStartTimeRed = Date.now();
-      requestAnimationFrame(updateValueRed);
+      fallVelocityRed = 0;
+      updateValueRed();
     }
     function endPressRed() {
       isPressedRed = false;
       fallVelocityRed = 0;
-      requestAnimationFrame(animateFallRed);
+      animateFallRed();
     }
     function updateValueRed() {
       if (!isPressedRed) return;
@@ -102,7 +103,7 @@
       valueRed = Math.min(100, valueRed + increment);
       sendValue('red', valueRed);
       debugElement.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
-      requestAnimationFrame(updateValueRed);
+      setTimeout(updateValueRed, 16); // ~60fps
     }
     function animateFallRed() {
       if (isPressedRed) return;
@@ -110,19 +111,20 @@
       valueRed = Math.max(0, valueRed - fallVelocityRed);
       sendValue('red', valueRed);
       debugElement.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
-      if (valueRed > 0) requestAnimationFrame(animateFallRed);
+      if (valueRed > 0) setTimeout(animateFallRed, 16);
     }
 
     // Blue ball logic (bottom half)
     function startPressBlue() {
       isPressedBlue = true;
       pressStartTimeBlue = Date.now();
-      requestAnimationFrame(updateValueBlue);
+      fallVelocityBlue = 0;
+      updateValueBlue();
     }
     function endPressBlue() {
       isPressedBlue = false;
       fallVelocityBlue = 0;
-      requestAnimationFrame(animateFallBlue);
+      animateFallBlue();
     }
     function updateValueBlue() {
       if (!isPressedBlue) return;
@@ -132,7 +134,7 @@
       valueBlue = Math.min(100, valueBlue + increment);
       sendValue('blue', valueBlue);
       debugElement.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
-      requestAnimationFrame(updateValueBlue);
+      setTimeout(updateValueBlue, 16);
     }
     function animateFallBlue() {
       if (isPressedBlue) return;
@@ -140,7 +142,7 @@
       valueBlue = Math.max(0, valueBlue - fallVelocityBlue);
       sendValue('blue', valueBlue);
       debugElement.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
-      if (valueBlue > 0) requestAnimationFrame(animateFallBlue);
+      if (valueBlue > 0) setTimeout(animateFallBlue, 16);
     }
 
     // Send value for the correct ball
