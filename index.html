@@ -87,12 +87,12 @@
     function startPressRed() {
       isPressedRed = true;
       pressStartTimeRed = Date.now();
-      updateValueRed();
+      requestAnimationFrame(updateValueRed);
     }
     function endPressRed() {
       isPressedRed = false;
       fallVelocityRed = 0;
-      animateFallRed();
+      requestAnimationFrame(animateFallRed);
     }
     function updateValueRed() {
       if (!isPressedRed) return;
@@ -100,28 +100,29 @@
       const accelerationFactor = Math.min(elapsedTime / 5, 1);
       const increment = 0.2 * (1 + 9 * accelerationFactor);
       valueRed = Math.min(100, valueRed + increment);
-      sendValue('red');
-      if (isPressedRed) requestAnimationFrame(updateValueRed);
+      sendValue('red', valueRed);
+      debugElement.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
+      requestAnimationFrame(updateValueRed);
     }
     function animateFallRed() {
       if (isPressedRed) return;
       fallVelocityRed += GRAVITY * 0.05;
       valueRed = Math.max(0, valueRed - fallVelocityRed);
-      sendValue('red');
-      if (valueRed <= 0) { valueRed = 0; return; }
-      requestAnimationFrame(animateFallRed);
+      sendValue('red', valueRed);
+      debugElement.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
+      if (valueRed > 0) requestAnimationFrame(animateFallRed);
     }
 
     // Blue ball logic (bottom half)
     function startPressBlue() {
       isPressedBlue = true;
       pressStartTimeBlue = Date.now();
-      updateValueBlue();
+      requestAnimationFrame(updateValueBlue);
     }
     function endPressBlue() {
       isPressedBlue = false;
       fallVelocityBlue = 0;
-      animateFallBlue();
+      requestAnimationFrame(animateFallBlue);
     }
     function updateValueBlue() {
       if (!isPressedBlue) return;
@@ -129,31 +130,28 @@
       const accelerationFactor = Math.min(elapsedTime / 5, 1);
       const increment = 0.2 * (1 + 9 * accelerationFactor);
       valueBlue = Math.min(100, valueBlue + increment);
-      sendValue('blue');
-      if (isPressedBlue) requestAnimationFrame(updateValueBlue);
+      sendValue('blue', valueBlue);
+      debugElement.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
+      requestAnimationFrame(updateValueBlue);
     }
     function animateFallBlue() {
       if (isPressedBlue) return;
       fallVelocityBlue += GRAVITY * 0.05;
       valueBlue = Math.max(0, valueBlue - fallVelocityBlue);
-      sendValue('blue');
-      if (valueBlue <= 0) { valueBlue = 0; return; }
-      requestAnimationFrame(animateFallBlue);
+      sendValue('blue', valueBlue);
+      debugElement.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
+      if (valueBlue > 0) requestAnimationFrame(animateFallBlue);
     }
 
     // Send value for the correct ball
-    function sendValue(ball) {
-      let roundedValue, normalizedValue, x;
+    function sendValue(ball, value) {
+      let normalizedValue, x;
       if (ball === 'red') {
-        roundedValue = Math.round(valueRed);
-        normalizedValue = roundedValue / 100;
-        x = 0.25; // left side for red
-        debugElement.textContent = `R:${roundedValue} B:${Math.round(valueBlue)}`;
+        normalizedValue = Math.round(value) / 100;
+        x = 0.0; // izquierda total para red
       } else {
-        roundedValue = Math.round(valueBlue);
-        normalizedValue = roundedValue / 100;
-        x = 0.75; // right side for blue
-        debugElement.textContent = `R:${Math.round(valueRed)} B:${roundedValue}`;
+        normalizedValue = Math.round(value) / 100;
+        x = 1.0; // derecha total para blue
       }
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ ball: ball, x: x, y: normalizedValue }));
