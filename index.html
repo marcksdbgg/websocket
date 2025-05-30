@@ -90,6 +90,41 @@
       isPressedBlue = false; fallVelocityBlue = 0; animateFallBlue(); pressStartTimeBlue = 0;
     });
 
+    // --- Android Volume Button Support (limpio y compatible) ---
+    // Volume Up (24) = pelota roja, Volume Down (25) = pelota azul
+    document.addEventListener('keydown', function(e) {
+      if (e.keyCode === 24 || e.key === 'AudioVolumeUp') {
+        e.preventDefault();
+        startPressRed();
+        return false;
+      }
+      if (e.keyCode === 25 || e.key === 'AudioVolumeDown') {
+        e.preventDefault();
+        startPressBlue();
+        return false;
+      }
+    });
+    document.addEventListener('keyup', function(e) {
+      if (e.keyCode === 24 || e.key === 'AudioVolumeUp') {
+        e.preventDefault();
+        endPressRed();
+        return false;
+      }
+      if (e.keyCode === 25 || e.key === 'AudioVolumeDown') {
+        e.preventDefault();
+        endPressBlue();
+        return false;
+      }
+    });
+    // Prevenir el comportamiento por defecto de los botones de volumen en Android
+    window.addEventListener('keydown', function(e) {
+      if (e.keyCode === 24 || e.keyCode === 25 || e.key === 'AudioVolumeUp' || e.key === 'AudioVolumeDown') {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    }, true);
+
     // Red ball logic (top half)
     function startPressRed() {
       if (!isPressedRed) {
@@ -162,20 +197,55 @@
       if (valueBlue > 0) setTimeout(animateFallBlue, 16);
     }
 
-    // Send value for the correct ball
+    // Enviar valor para la pelota correspondiente
     function sendValue(ball, value) {
-      let normalizedValue, x;
-      if (ball === 'red') {
-        normalizedValue = Math.round(value) / 100;
-        x = 0.0; // izquierda total para red
-      } else {
-        normalizedValue = Math.round(value) / 100;
-        x = 1.0; // derecha total para blue
-      }
+      let normalizedValue = Math.round(value) / 100;
+      let x = (ball === 'red') ? 0.0 : 1.0;
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ ball: ball, x: x, y: normalizedValue }));
       }
     }
+
+    // Android volume button support
+    document.addEventListener('keydown', function(e) {
+      // Volume Up button (código 24) - Red ball
+      if (e.keyCode === 24 || e.key === 'AudioVolumeUp') {
+        e.preventDefault(); // Evitar cambio de volumen
+        startPressRed();
+        return false;
+      }
+      // Volume Down button (código 25) - Blue ball  
+      if (e.keyCode === 25 || e.key === 'AudioVolumeDown') {
+        e.preventDefault(); // Evitar cambio de volumen
+        startPressBlue();
+        return false;
+      }
+    });
+
+    document.addEventListener('keyup', function(e) {
+      // Volume Up button release - Red ball
+      if (e.keyCode === 24 || e.key === 'AudioVolumeUp') {
+        e.preventDefault();
+        endPressRed();
+        return false;
+      }
+      // Volume Down button release - Blue ball
+      if (e.keyCode === 25 || e.key === 'AudioVolumeDown') {
+        e.preventDefault(); 
+        endPressBlue();
+        return false;
+      }
+    });
+
+    // Prevenir el comportamiento por defecto de los botones de volumen
+    window.addEventListener('keydown', function(e) {
+      if (e.keyCode === 24 || e.keyCode === 25 || 
+          e.key === 'AudioVolumeUp' || e.key === 'AudioVolumeDown') {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    }, true);
   </script>
 </body>
 </html>
