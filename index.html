@@ -1,180 +1,113 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Controlador Mindball</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background-color: #000;
-      touch-action: none;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-    #debug {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      color: #fff;
-      font-family: monospace;
-      font-size: 20px;
-      background: rgba(0,0,0,0.5);
-      padding: 5px;
-      border-radius: 5px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Control MindBall</title>
+<style>
+  :root{--bg:#000} *{margin:0;padding:0;user-select:none}
+  body{width:100vw;height:100vh;background:var(--bg);touch-action:none}
+  #debug{position:fixed;top:10px;left:10px;
+         font:20px/1 monospace;background:#0008;color:#fff;padding:4px 8px;
+         border-radius:6px}
+</style>
 </head>
 <body>
-  <div id="debug">R:0 B:0</div>
-  <script>
-    // -- CONFIGURACIÓN WEBSOCKET --
-    // Usa ws:// para túnel HTTP de ngrok (ngrok http 4649)
-    const NGROK_HOST = 'd0d7-2001-1388-53a0-ca20-8899-2950-83d2-b2df.ngrok-free.app';
-    const ws = new WebSocket(`ws://${NGROK_HOST}`);
-    ws.onopen    = () => console.log("WebSocket conectado");
-    ws.onerror   = e => console.error("WebSocket ERROR:", e);
-    ws.onclose   = e => console.warn("WebSocket cerrado, código:", e);
+<div id="debug">R:0 B:0</div>
 
-    // -- ESTADO GLOBAL --
-    let valueRed = 0, valueBlue = 0;
-    let isPressedRed = false, isPressedBlue = false;
-    let pressStartTimeRed = 0, pressStartTimeBlue = 0;
-    let fallVelocityRed = 0, fallVelocityBlue = 0;
-    const GRAVITY = 0.68;
-    const debugEl = document.getElementById('debug');
+<script>
+/* ------------ Configuración ------------ */
+const WS_URL = "ws://127.0.0.1:4649";        // cámbialo si usas ngrok
+const GRAVITY      = 0.68;                   // caída por cuadro
+const INC_BASE     = 0.2;                    // incremento mínimo
+const INC_MAX_TIME = 5;                      // seg hasta alcanzar máx vel
+/* --------------------------------------- */
 
-    // -- UTILIDADES --
-    function sendValue(ball, val) {
-      // Normalize to [0,1]
-      const y = Math.min(Math.max(val / 100, 0), 1);
-      const x = ball === 'red' ? 0.0 : 1.0;
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ ball, x, y }));
-      }
-      debugEl.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
-    }
+let ws;
+function connectWS() {
+  ws = new WebSocket(WS_URL);
+  ws.onopen  = () => console.log("✅ WebSocket conectado");
+  ws.onerror = e  => console.error("WebSocket error:", e);
+  ws.onclose = () => { console.warn("WebSocket cerrado, reconectando…");
+                       setTimeout(connectWS, 1000); };
+}
+connectWS();
 
-    function getHalfFromY(y) {
-      return y < window.innerHeight / 2 ? 'red' : 'blue';
-    }
+/* ----- Estado ----- */
+let red   = {val:0, pressed:false, start:0, vFall:0};
+let blue  = {val:0, pressed:false, start:0, vFall:0};
+const dbg = document.getElementById("debug");
 
-    // -- LÓGICA DE PRESIÓN CONTINUA --
-    function startPress(ball) {
-      if (ball === 'red' && !isPressedRed) {
-        isPressedRed = true;
-        pressStartTimeRed = Date.now();
-        fallVelocityRed = 0;
-        updateRed();
-      }
-      if (ball === 'blue' && !isPressedBlue) {
-        isPressedBlue = true;
-        pressStartTimeBlue = Date.now();
-        fallVelocityBlue = 0;
-        updateBlue();
-      }
-    }
-    function endPress(ball) {
-      if (ball === 'red' && isPressedRed) {
-        isPressedRed = false;
-        fallVelocityRed = 0;
-        animateFallRed();
-        pressStartTimeRed = 0;
-      }
-      if (ball === 'blue' && isPressedBlue) {
-        isPressedBlue = false;
-        fallVelocityBlue = 0;
-        animateFallBlue();
-        pressStartTimeBlue = 0;
-      }
-    }
+/* ----- Utilidades ----- */
+function send(ball, value){
+  if(ws.readyState!==WebSocket.OPEN) return;
+  ws.send(JSON.stringify({
+      ball,
+      x : ball==="red"?0:1,
+      y : +(value/100).toFixed(2)
+  }));
+}
 
-    // -- ACTUALIZACIÓN CUANDO SE MANTIENE PRESIONADO --
-    function updateRed() {
-      if (!isPressedRed) return;
-      const t = (Date.now() - pressStartTimeRed) / 1000;
-      const accel = Math.min(t / 5, 1);
-      const inc = 0.2 * (1 + 9 * accel);
-      valueRed = Math.min(100, valueRed + inc);
-      sendValue('red', valueRed);
-      requestAnimationFrame(updateRed);
-    }
-    function updateBlue() {
-      if (!isPressedBlue) return;
-      const t = (Date.now() - pressStartTimeBlue) / 1000;
-      const accel = Math.min(t / 5, 1);
-      const inc = 0.2 * (1 + 9 * accel);
-      valueBlue = Math.min(100, valueBlue + inc);
-      sendValue('blue', valueBlue);
-      requestAnimationFrame(updateBlue);
-    }
+function updateDebug(){
+  dbg.textContent=`R:${Math.round(red.val)}  B:${Math.round(blue.val)}`;
+}
 
-    // -- ANIMACIÓN DE CAÍDA AL SOLTAR --
-    function animateFallRed() {
-      if (isPressedRed) return;
-      fallVelocityRed += GRAVITY * 0.05;
-      valueRed = Math.max(0, valueRed - fallVelocityRed);
-      sendValue('red', valueRed);
-      if (valueRed > 0) requestAnimationFrame(animateFallRed);
-    }
-    function animateFallBlue() {
-      if (isPressedBlue) return;
-      fallVelocityBlue += GRAVITY * 0.05;
-      valueBlue = Math.max(0, valueBlue - fallVelocityBlue);
-      sendValue('blue', valueBlue);
-      if (valueBlue > 0) requestAnimationFrame(animateFallBlue);
-    }
+/* ----- Entrada táctil / ratón unificada con pointer events ----- */
+function handlePointerDown(e){
+  const half = (e.clientY < innerHeight/2) ? red : blue;
+  if(!half.pressed){
+    half.pressed=true;
+    half.start=performance.now();
+    half.vFall=0;
+  }
+}
+function handlePointerUp(e){
+  const half = (e.clientY < innerHeight/2) ? red : blue;
+  half.pressed=false;
+  half.vFall=0;
+}
+document.addEventListener("pointerdown",handlePointerDown);
+document.addEventListener("pointerup",handlePointerUp);
+document.addEventListener("pointercancel",handlePointerUp);
 
-    // -- EVENTOS DE TOUCH / MOUSE --
-    document.addEventListener('mousedown', e => {
-      startPress(getHalfFromY(e.clientY));
-    });
-    document.addEventListener('mouseup', e => {
-      endPress(getHalfFromY(e.clientY));
-    });
-    document.addEventListener('touchstart', e => {
-      for (const t of Array.from(e.touches)) {
-        startPress(getHalfFromY(t.clientY));
-      }
-    }, { passive: false });
-    document.addEventListener('touchend', e => {
-      // Revisa si quedan dedos en cada mitad
-      const reds = Array.from(e.touches).some(t => getHalfFromY(t.clientY) === 'red');
-      const blues = Array.from(e.touches).some(t => getHalfFromY(t.clientY) === 'blue');
-      if (!reds) endPress('red');
-      if (!blues) endPress('blue');
-    });
-    document.addEventListener('touchcancel', () => {
-      endPress('red');
-      endPress('blue');
-    });
+/* ----- Botones de volumen Android ----- */
+function volKey(e,isDown){
+  if(e.keyCode===24||e.key==="AudioVolumeUp"){   // ↑ rojo
+    e.preventDefault(); (isDown?red:blue);       // sólo para anular sist.
+    isDown?handleVol(red):handleVolUp(red);
+  }
+  if(e.keyCode===25||e.key==="AudioVolumeDown"){ // ↓ azul
+    e.preventDefault();
+    isDown?handleVol(blue):handleVolUp(blue);
+  }
+}
+function handleVol(obj){              // presionar
+  if(!obj.pressed){obj.pressed=true; obj.start=performance.now(); obj.vFall=0;}
+}
+function handleVolUp(obj){            // soltar
+  obj.pressed=false; obj.vFall=0;
+}
+document.addEventListener("keydown",e=>volKey(e,true),true);
+document.addEventListener("keyup",  e=>volKey(e,false),true);
 
-    // -- EVENTOS DE TECLADO (BOTONES DE VOLUMEN ANDROID) --
-    window.addEventListener('keydown', e => {
-      // Volume Up = Red, Volume Down = Blue
-      if (e.keyCode === 24 || e.key === 'AudioVolumeUp') {
-        e.preventDefault();
-        startPress('red');
-      }
-      else if (e.keyCode === 25 || e.key === 'AudioVolumeDown') {
-        e.preventDefault();
-        startPress('blue');
-      }
-    }, { capture: true });
-    window.addEventListener('keyup', e => {
-      if (e.keyCode === 24 || e.key === 'AudioVolumeUp') {
-        e.preventDefault();
-        endPress('red');
-      }
-      else if (e.keyCode === 25 || e.key === 'AudioVolumeDown') {
-        e.preventDefault();
-        endPress('blue');
-      }
-    }, { capture: true });
-  </script>
+/* ----- Bucle principal ----- */
+function tick(now){
+  [ ["red",red], ["blue",blue] ].forEach(([name,o])=>{
+    if(o.pressed){
+      const t = (now-o.start)/1000;
+      const a = Math.min(t/INC_MAX_TIME,1);
+      o.val = Math.min(100, o.val + INC_BASE*(1+9*a));
+    }else if(o.val>0){
+      o.vFall += GRAVITY;
+      o.val    = Math.max(0, o.val - o.vFall);
+    }
+    send(name,o.val);
+  });
+  updateDebug();
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
 </body>
 </html>
