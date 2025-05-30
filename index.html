@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Controlador</title>
+  <title>Controlador Mindball</title>
   <style>
     html, body {
       margin: 0;
@@ -30,222 +30,151 @@
   </style>
 </head>
 <body>
-  <div id="debug">0</div>
+  <div id="debug">R:0 B:0</div>
   <script>
-    // WebSocket connection
-    const ws = new WebSocket('wss://d0d7-2001-1388-53a0-ca20-8899-2950-83d2-b2df.ngrok-free.app');
-    ws.onopen = () => console.log("WebSocket conectado");
-    ws.onerror = (e) => console.error("WebSocket error:", e);
+    // -- CONFIGURACIÓN WEBSOCKET --
+    // Usa ws:// para túnel HTTP de ngrok (ngrok http 4649)
+    const NGROK_HOST = 'd0d7-2001-1388-53a0-ca20-8899-2950-83d2-b2df.ngrok-free.app';
+    const ws = new WebSocket(`ws://${NGROK_HOST}`);
+    ws.onopen    = () => console.log("WebSocket conectado");
+    ws.onerror   = e => console.error("WebSocket ERROR:", e);
+    ws.onclose   = e => console.warn("WebSocket cerrado, código:", e);
 
-    // Variables for each half
+    // -- ESTADO GLOBAL --
     let valueRed = 0, valueBlue = 0;
     let isPressedRed = false, isPressedBlue = false;
     let pressStartTimeRed = 0, pressStartTimeBlue = 0;
     let fallVelocityRed = 0, fallVelocityBlue = 0;
     const GRAVITY = 0.68;
-    let debugElement = document.getElementById('debug');
+    const debugEl = document.getElementById('debug');
 
-    // Helper to get touch/click position
-    function getHalf(e) {
-      let y;
-      if (e.touches && e.touches.length > 0) {
-        y = e.touches[0].clientY;
-      } else {
-        y = e.clientY;
+    // -- UTILIDADES --
+    function sendValue(ball, val) {
+      // Normalize to [0,1]
+      const y = Math.min(Math.max(val / 100, 0), 1);
+      const x = ball === 'red' ? 0.0 : 1.0;
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ ball, x, y }));
       }
-      return (y < window.innerHeight / 2) ? 'red' : 'blue';
+      debugEl.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
     }
 
-    // Permitir multitouch y mouse simultáneo
-    document.addEventListener('mousedown', function(e) {
-      if (getHalf(e) === 'red') startPressRed();
-      if (getHalf(e) === 'blue') startPressBlue();
-    });
-    document.addEventListener('mouseup', function(e) {
-      if (getHalf(e) === 'red') endPressRed();
-      if (getHalf(e) === 'blue') endPressBlue();
-    });
-    document.addEventListener('touchstart', function(e) {
-      for (let i = 0; i < e.touches.length; i++) {
-        const y = e.touches[i].clientY;
-        if (y < window.innerHeight / 2) isPressedRed = true;
-        else isPressedBlue = true;
-      }
-      if (isPressedRed && !pressStartTimeRed) { pressStartTimeRed = Date.now(); fallVelocityRed = 0; updateValueRed(); }
-      if (isPressedBlue && !pressStartTimeBlue) { pressStartTimeBlue = Date.now(); fallVelocityBlue = 0; updateValueBlue(); }
-    });
-    document.addEventListener('touchend', function(e) {
-      // Verificar si quedan dedos en cada mitad
-      let stillRed = false, stillBlue = false;
-      for (let i = 0; i < e.touches.length; i++) {
-        const y = e.touches[i].clientY;
-        if (y < window.innerHeight / 2) stillRed = true;
-        else stillBlue = true;
-      }
-      if (!stillRed) { isPressedRed = false; fallVelocityRed = 0; animateFallRed(); pressStartTimeRed = 0; }
-      if (!stillBlue) { isPressedBlue = false; fallVelocityBlue = 0; animateFallBlue(); pressStartTimeBlue = 0; }
-    });
-    document.addEventListener('touchcancel', function(e) {
-      isPressedRed = false; fallVelocityRed = 0; animateFallRed(); pressStartTimeRed = 0;
-      isPressedBlue = false; fallVelocityBlue = 0; animateFallBlue(); pressStartTimeBlue = 0;
-    });
+    function getHalfFromY(y) {
+      return y < window.innerHeight / 2 ? 'red' : 'blue';
+    }
 
-    // --- Android Volume Button Support (limpio y compatible) ---
-    // Volume Up (24) = pelota roja, Volume Down (25) = pelota azul
-    document.addEventListener('keydown', function(e) {
-      if (e.keyCode === 24 || e.key === 'AudioVolumeUp') {
-        e.preventDefault();
-        startPressRed();
-        return false;
-      }
-      if (e.keyCode === 25 || e.key === 'AudioVolumeDown') {
-        e.preventDefault();
-        startPressBlue();
-        return false;
-      }
-    });
-    document.addEventListener('keyup', function(e) {
-      if (e.keyCode === 24 || e.key === 'AudioVolumeUp') {
-        e.preventDefault();
-        endPressRed();
-        return false;
-      }
-      if (e.keyCode === 25 || e.key === 'AudioVolumeDown') {
-        e.preventDefault();
-        endPressBlue();
-        return false;
-      }
-    });
-    // Prevenir el comportamiento por defecto de los botones de volumen en Android
-    window.addEventListener('keydown', function(e) {
-      if (e.keyCode === 24 || e.keyCode === 25 || e.key === 'AudioVolumeUp' || e.key === 'AudioVolumeDown') {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-      }
-    }, true);
-
-    // Red ball logic (top half)
-    function startPressRed() {
-      if (!isPressedRed) {
+    // -- LÓGICA DE PRESIÓN CONTINUA --
+    function startPress(ball) {
+      if (ball === 'red' && !isPressedRed) {
         isPressedRed = true;
         pressStartTimeRed = Date.now();
         fallVelocityRed = 0;
-        updateValueRed();
+        updateRed();
+      }
+      if (ball === 'blue' && !isPressedBlue) {
+        isPressedBlue = true;
+        pressStartTimeBlue = Date.now();
+        fallVelocityBlue = 0;
+        updateBlue();
       }
     }
-    function endPressRed() {
-      if (isPressedRed) {
+    function endPress(ball) {
+      if (ball === 'red' && isPressedRed) {
         isPressedRed = false;
         fallVelocityRed = 0;
         animateFallRed();
         pressStartTimeRed = 0;
       }
-    }
-    function updateValueRed() {
-      if (!isPressedRed) return;
-      const elapsedTime = (Date.now() - pressStartTimeRed) / 1000;
-      const accelerationFactor = Math.min(elapsedTime / 5, 1);
-      const increment = 0.2 * (1 + 9 * accelerationFactor);
-      valueRed = Math.min(100, valueRed + increment);
-      sendValue('red', valueRed);
-      debugElement.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
-      setTimeout(updateValueRed, 16); // ~60fps
-    }
-    function animateFallRed() {
-      if (isPressedRed) return;
-      fallVelocityRed += GRAVITY * 0.05;
-      valueRed = Math.max(0, valueRed - fallVelocityRed);
-      sendValue('red', valueRed);
-      debugElement.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
-      if (valueRed > 0) setTimeout(animateFallRed, 16);
-    }
-
-    // Blue ball logic (bottom half)
-    function startPressBlue() {
-      if (!isPressedBlue) {
-        isPressedBlue = true;
-        pressStartTimeBlue = Date.now();
-        fallVelocityBlue = 0;
-        updateValueBlue();
-      }
-    }
-    function endPressBlue() {
-      if (isPressedBlue) {
+      if (ball === 'blue' && isPressedBlue) {
         isPressedBlue = false;
         fallVelocityBlue = 0;
         animateFallBlue();
         pressStartTimeBlue = 0;
       }
     }
-    function updateValueBlue() {
+
+    // -- ACTUALIZACIÓN CUANDO SE MANTIENE PRESIONADO --
+    function updateRed() {
+      if (!isPressedRed) return;
+      const t = (Date.now() - pressStartTimeRed) / 1000;
+      const accel = Math.min(t / 5, 1);
+      const inc = 0.2 * (1 + 9 * accel);
+      valueRed = Math.min(100, valueRed + inc);
+      sendValue('red', valueRed);
+      requestAnimationFrame(updateRed);
+    }
+    function updateBlue() {
       if (!isPressedBlue) return;
-      const elapsedTime = (Date.now() - pressStartTimeBlue) / 1000;
-      const accelerationFactor = Math.min(elapsedTime / 5, 1);
-      const increment = 0.2 * (1 + 9 * accelerationFactor);
-      valueBlue = Math.min(100, valueBlue + increment);
+      const t = (Date.now() - pressStartTimeBlue) / 1000;
+      const accel = Math.min(t / 5, 1);
+      const inc = 0.2 * (1 + 9 * accel);
+      valueBlue = Math.min(100, valueBlue + inc);
       sendValue('blue', valueBlue);
-      debugElement.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
-      setTimeout(updateValueBlue, 16);
+      requestAnimationFrame(updateBlue);
+    }
+
+    // -- ANIMACIÓN DE CAÍDA AL SOLTAR --
+    function animateFallRed() {
+      if (isPressedRed) return;
+      fallVelocityRed += GRAVITY * 0.05;
+      valueRed = Math.max(0, valueRed - fallVelocityRed);
+      sendValue('red', valueRed);
+      if (valueRed > 0) requestAnimationFrame(animateFallRed);
     }
     function animateFallBlue() {
       if (isPressedBlue) return;
       fallVelocityBlue += GRAVITY * 0.05;
       valueBlue = Math.max(0, valueBlue - fallVelocityBlue);
       sendValue('blue', valueBlue);
-      debugElement.textContent = `R:${Math.round(valueRed)} B:${Math.round(valueBlue)}`;
-      if (valueBlue > 0) setTimeout(animateFallBlue, 16);
+      if (valueBlue > 0) requestAnimationFrame(animateFallBlue);
     }
 
-    // Enviar valor para la pelota correspondiente
-    function sendValue(ball, value) {
-      let normalizedValue = Math.round(value) / 100;
-      let x = (ball === 'red') ? 0.0 : 1.0;
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ ball: ball, x: x, y: normalizedValue }));
+    // -- EVENTOS DE TOUCH / MOUSE --
+    document.addEventListener('mousedown', e => {
+      startPress(getHalfFromY(e.clientY));
+    });
+    document.addEventListener('mouseup', e => {
+      endPress(getHalfFromY(e.clientY));
+    });
+    document.addEventListener('touchstart', e => {
+      for (const t of Array.from(e.touches)) {
+        startPress(getHalfFromY(t.clientY));
       }
-    }
-
-    // Android volume button support
-    document.addEventListener('keydown', function(e) {
-      // Volume Up button (código 24) - Red ball
-      if (e.keyCode === 24 || e.key === 'AudioVolumeUp') {
-        e.preventDefault(); // Evitar cambio de volumen
-        startPressRed();
-        return false;
-      }
-      // Volume Down button (código 25) - Blue ball  
-      if (e.keyCode === 25 || e.key === 'AudioVolumeDown') {
-        e.preventDefault(); // Evitar cambio de volumen
-        startPressBlue();
-        return false;
-      }
+    }, { passive: false });
+    document.addEventListener('touchend', e => {
+      // Revisa si quedan dedos en cada mitad
+      const reds = Array.from(e.touches).some(t => getHalfFromY(t.clientY) === 'red');
+      const blues = Array.from(e.touches).some(t => getHalfFromY(t.clientY) === 'blue');
+      if (!reds) endPress('red');
+      if (!blues) endPress('blue');
+    });
+    document.addEventListener('touchcancel', () => {
+      endPress('red');
+      endPress('blue');
     });
 
-    document.addEventListener('keyup', function(e) {
-      // Volume Up button release - Red ball
+    // -- EVENTOS DE TECLADO (BOTONES DE VOLUMEN ANDROID) --
+    window.addEventListener('keydown', e => {
+      // Volume Up = Red, Volume Down = Blue
       if (e.keyCode === 24 || e.key === 'AudioVolumeUp') {
         e.preventDefault();
-        endPressRed();
-        return false;
+        startPress('red');
       }
-      // Volume Down button release - Blue ball
-      if (e.keyCode === 25 || e.key === 'AudioVolumeDown') {
-        e.preventDefault(); 
-        endPressBlue();
-        return false;
-      }
-    });
-
-    // Prevenir el comportamiento por defecto de los botones de volumen
-    window.addEventListener('keydown', function(e) {
-      if (e.keyCode === 24 || e.keyCode === 25 || 
-          e.key === 'AudioVolumeUp' || e.key === 'AudioVolumeDown') {
+      else if (e.keyCode === 25 || e.key === 'AudioVolumeDown') {
         e.preventDefault();
-        e.stopPropagation();
-        return false;
+        startPress('blue');
       }
-    }, true);
+    }, { capture: true });
+    window.addEventListener('keyup', e => {
+      if (e.keyCode === 24 || e.key === 'AudioVolumeUp') {
+        e.preventDefault();
+        endPress('red');
+      }
+      else if (e.keyCode === 25 || e.key === 'AudioVolumeDown') {
+        e.preventDefault();
+        endPress('blue');
+      }
+    }, { capture: true });
   </script>
 </body>
 </html>
