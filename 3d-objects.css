@@ -1,0 +1,417 @@
+/* ===================================================
+   CSS para Objetos 3D Mejorados - Evaluador EEG
+   =================================================== */
+
+/* Configuración base para efectos 3D */
+.object-3d {
+  perspective: 300px;
+  perspective-origin: center center;
+  transform-style: preserve-3d;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 15px;
+  position: relative;
+  animation: rotate3d 8s linear infinite;
+}
+
+.object-card.selected .object-3d {
+  animation-duration: 2s;
+}
+
+/* ===============================
+   CUBO 3D REALISTA
+   =============================== */
+.cube {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  transform-style: preserve-3d;
+  transform: rotateX(-15deg) rotateY(15deg);
+  margin: 15px auto;
+}
+
+.cube::before,
+.cube::after {
+  content: '';
+  position: absolute;
+  width: 50px;
+  height: 50px;
+}
+
+/* Cara frontal */
+.cube {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 50%, #d32f2f 100%);
+  border: 1px solid #ff5252;
+  border-radius: 4px;
+  box-shadow: 
+    0 0 25px rgba(255, 107, 107, 0.8),
+    inset -5px -5px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Cara superior */
+.cube::before {
+  background: linear-gradient(135deg, #ff8a80 0%, #ff6b6b 100%);
+  border: 1px solid #ff5252;
+  border-radius: 4px;
+  transform: rotateX(90deg) translateZ(25px);
+  top: -25px;
+}
+
+/* Cara derecha */
+.cube::after {
+  background: linear-gradient(135deg, #e57373 0%, #f44336 100%);
+  border: 1px solid #ff5252;
+  border-radius: 4px;
+  transform: rotateY(90deg) translateZ(25px);
+  right: -25px;
+}
+
+/* ===============================
+   ESFERA 3D REALISTA
+   =============================== */
+.sphere {
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(
+    circle at 30% 30%, 
+    #b2dfdb 0%, 
+    #4ecdc4 30%, 
+    #26a69a  60%, 
+    #00695c 100%
+  );
+  border-radius: 50%;
+  position: relative;
+  margin: 10px auto;
+  box-shadow: 
+    0 0 30px rgba(78, 205, 196, 0.8),
+    inset -15px -15px 30px rgba(0, 105, 92, 0.4),
+    inset 10px 10px 20px rgba(178, 223, 219, 0.3);
+  transform: rotateX(10deg) rotateY(10deg);
+}
+
+.sphere::before {
+  content: '';
+  position: absolute;
+  top: 20%;
+  left: 25%;
+  width: 25px;
+  height: 25px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+.sphere::after {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 20%;
+  width: 15px;
+  height: 15px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  filter: blur(1px);
+}
+
+/* ===============================
+   PIRÁMIDE 3D REALISTA
+   =============================== */
+.pyramid {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  margin: 10px auto;
+  transform-style: preserve-3d;
+  transform: rotateX(-10deg) rotateY(20deg);
+}
+
+.pyramid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-bottom: 50px solid #ffa726;
+  filter: drop-shadow(0 0 15px rgba(255, 167, 38, 0.8));
+}
+
+.pyramid::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%) rotateY(60deg);
+  width: 0;
+  height: 0;
+  border-left: 25px solid transparent;
+  border-right: 25px solid transparent;
+  border-bottom: 40px solid #ff9800;
+  filter: drop-shadow(0 0 10px rgba(255, 152, 0, 0.6));
+}
+
+/* ===============================
+   CILINDRO 3D REALISTA
+   =============================== */
+.cylinder {
+  position: relative;
+  width: 45px;
+  height: 60px;
+  background: linear-gradient(
+    180deg, 
+    #ce93d8 0%, 
+    #ab47bc 30%, 
+    #8e24aa 70%, 
+    #6a1b9a 100%
+  );
+  border-radius: 22.5px;
+  margin: 10px auto;
+  transform: rotateX(15deg) rotateY(-10deg);
+  box-shadow: 
+    0 0 25px rgba(171, 71, 188, 0.8),
+    6px 0 0 rgba(142, 36, 170, 0.8),
+    inset -5px 0 10px rgba(106, 27, 154, 0.3);
+}
+
+.cylinder::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 45px;
+  height: 16px;
+  background: radial-gradient(
+    ellipse, 
+    #f3e5f5 0%, 
+    #e1bee7 30%, 
+    #ba68c8 70%, 
+    #ab47bc 100%
+  );
+  border-radius: 50%;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    inset 0 -2px 5px rgba(171, 71, 188, 0.3);
+  transform: rotateX(75deg);
+}
+
+.cylinder::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 45px;
+  height: 16px;
+  background: radial-gradient(
+    ellipse, 
+    #9c27b0 0%, 
+    #8e24aa 30%, 
+    #6a1b9a 70%, 
+    #4a148c 100%
+  );
+  border-radius: 50%;
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.5),
+    inset 0 2px 5px rgba(74, 20, 140, 0.4);
+  transform: rotateX(-75deg);
+}
+
+/* ===============================
+   OCTAEDRO 3D REALISTA
+   =============================== */
+.octahedron {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  margin: 15px auto;
+  transform-style: preserve-3d;
+  transform: rotateX(15deg) rotateY(15deg) rotateZ(45deg);
+}
+
+.octahedron::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 30%, #66bb6a 70%, #4caf50 100%);
+  border: 1px solid #4caf50;
+  border-radius: 8px;
+  box-shadow: 
+    0 0 25px rgba(102, 187, 106, 0.8),
+    4px -4px 0 rgba(76, 175, 80, 0.8);
+  transform: rotateZ(0deg);
+}
+
+.octahedron::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #81c784 0%, #66bb6a 30%, #4caf50 70%, #2e7d32 100%);
+  border: 1px solid #4caf50;
+  border-radius: 8px;
+  box-shadow: 
+    0 0 20px rgba(76, 175, 80, 0.6),
+    -4px 4px 0 rgba(46, 125, 50, 0.8);
+  transform: rotateZ(90deg);
+}
+
+/* ===============================
+   ROMBO/DIAMANTE 3D REALISTA
+   =============================== */
+.diamond {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  margin: 15px auto;
+  transform-style: preserve-3d;
+  transform: rotateX(15deg) rotateY(15deg) rotateZ(45deg);
+}
+
+.diamond::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #f8bbd9 0%, #f06292 30%, #e91e63 70%, #ad1457 100%);
+  border: 1px solid #e91e63;
+  box-shadow: 
+    0 0 30px rgba(240, 98, 146, 0.9),
+    5px -5px 0 rgba(233, 30, 99, 0.8),
+    10px -10px 0 rgba(173, 20, 87, 0.6);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+.diamond::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #fce4ec 0%, #f48fb1 30%, #f06292 70%, #e91e63 100%);
+  border: 1px solid #f06292;
+  box-shadow: 
+    0 0 25px rgba(244, 143, 177, 0.7),
+    -5px 5px 0 rgba(240, 98, 146, 0.8);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  transform: rotateY(90deg) rotateZ(-45deg);
+}
+
+/* ===============================
+   ANIMACIONES MEJORADAS
+   =============================== */
+@keyframes rotate3d {
+  0% { 
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); 
+  }
+  25% { 
+    transform: rotateX(90deg) rotateY(90deg) rotateZ(45deg); 
+  }
+  50% { 
+    transform: rotateX(180deg) rotateY(180deg) rotateZ(90deg); 
+  }
+  75% { 
+    transform: rotateX(270deg) rotateY(270deg) rotateZ(135deg); 
+  }
+  100% { 
+    transform: rotateX(360deg) rotateY(360deg) rotateZ(180deg); 
+  }
+}
+
+/* Animación especial para objetos seleccionados */
+.object-card.selected .object-3d {
+  animation: pulse3d 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse3d {
+  0% { 
+    transform: scale(1) rotateX(0deg) rotateY(0deg);
+    filter: brightness(1);
+  }
+  100% { 
+    transform: scale(1.1) rotateX(15deg) rotateY(15deg);
+    filter: brightness(1.3);
+  }
+}
+
+/* ===============================
+   RESPONSIVE PARA MÓVILES
+   =============================== */
+@media (max-width: 768px) {
+  .object-3d {
+    width: 60px;
+    height: 60px;
+    perspective: 200px;
+  }
+  
+  .cube {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .cube::before,
+  .cube::after {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .cube::before {
+    top: -17.5px;
+    transform: rotateX(90deg) translateZ(17.5px);
+  }
+  
+  .cube::after {
+    right: -17.5px;
+    transform: rotateY(90deg) translateZ(17.5px);
+  }
+  
+  .sphere {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .cylinder {
+    width: 32px;
+    height: 45px;
+    border-radius: 16px;
+  }
+  
+  .cylinder::before,
+  .cylinder::after {
+    width: 32px;
+  }
+  
+  .octahedron,
+  .diamond {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .pyramid {
+    width: 45px;
+    height: 45px;
+  }
+}
+
+/* ===============================
+   EFECTOS ADICIONALES
+   =============================== */
+.object-3d:hover {
+  animation-play-state: paused;
+  transform: scale(1.15);
+  filter: brightness(1.2);
+}
+
+.object-card.selected .object-3d:hover {
+  transform: scale(1.25);
+  filter: brightness(1.4) drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+}
