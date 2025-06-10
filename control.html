@@ -103,61 +103,207 @@
       font-size: 0.9em;
       opacity: 0.7;
       font-weight: 300;
+    }    /* Formas 3D */
+    .cube {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 50%, #d32f2f 100%);
+      border: 1px solid #ff5252;
+      border-radius: 6px;
+      box-shadow: 
+        0 0 20px rgba(255, 107, 107, 0.6),
+        4px -4px 0 rgba(255, 82, 82, 0.8),
+        8px -8px 0 rgba(238, 90, 82, 0.6);
+      transform: rotateX(15deg) rotateY(-15deg);
     }
 
-    /* Formas 3D */
-    .cube {
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-      border: 2px solid #ff5252;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+    .cube::before {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 4px;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #ff8a80 0%, #ff6b6b 100%);
+      border: 1px solid #ff5252;
+      border-radius: 6px;
+      transform: rotateX(90deg);
+    }
+
+    .cube::after {
+      content: '';
+      position: absolute;
+      top: 4px;
+      right: -8px;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #e57373 0%, #f44336 100%);
+      border: 1px solid #ff5252;
+      border-radius: 6px;
+      transform: rotateY(90deg);
     }
 
     .sphere {
       width: 60px;
       height: 60px;
-      background: radial-gradient(circle at 30% 30%, #4ecdc4, #26a69a);
+      background: radial-gradient(circle at 25% 25%, #80cbc4, #4ecdc4, #26a69a, #004d40);
       border-radius: 50%;
-      box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+      box-shadow: 
+        0 0 25px rgba(78, 205, 196, 0.7),
+        inset -10px -10px 20px rgba(0, 77, 64, 0.3),
+        inset 10px 10px 20px rgba(128, 203, 196, 0.3);
+      position: relative;
+    }
+
+    .sphere::before {
+      content: '';
+      position: absolute;
+      top: 15%;
+      left: 20%;
+      width: 20px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      filter: blur(3px);
     }
 
     .pyramid {
+      position: relative;
       width: 0;
       height: 0;
-      border-left: 30px solid transparent;
-      border-right: 30px solid transparent;
-      border-bottom: 60px solid #ffa726;
-      filter: drop-shadow(0 0 10px rgba(255, 167, 38, 0.5));
+      border-left: 25px solid transparent;
+      border-right: 25px solid transparent;
+      border-bottom: 50px solid #ffa726;
+      filter: drop-shadow(0 0 15px rgba(255, 167, 38, 0.6));
+      transform: rotateX(15deg);
+    }
+
+    .pyramid::before {
+      content: '';
+      position: absolute;
+      bottom: -50px;
+      left: -20px;
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 50px solid #ff9800;
+      transform: rotateY(-30deg);
+    }
+
+    .pyramid::after {
+      content: '';
+      position: absolute;
+      bottom: -50px;
+      right: -20px;
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 50px solid #ef6c00;
+      transform: rotateY(30deg);
     }
 
     .cylinder {
+      position: relative;
       width: 40px;
-      height: 60px;
-      background: linear-gradient(180deg, #ab47bc, #8e24aa);
+      height: 55px;
+      background: linear-gradient(180deg, #ce93d8, #ab47bc, #8e24aa, #6a1b9a);
       border-radius: 20px;
-      border: 2px solid #9c27b0;
-      box-shadow: 0 0 20px rgba(171, 71, 188, 0.5);
+      box-shadow: 
+        0 0 20px rgba(171, 71, 188, 0.6),
+        4px 0 0 rgba(142, 36, 170, 0.8);
+      transform: rotateX(15deg) rotateY(-10deg);
+    }
+
+    .cylinder::before {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 0;
+      width: 40px;
+      height: 16px;
+      background: radial-gradient(ellipse, #e1bee7, #ba68c8, #ab47bc);
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .cylinder::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 40px;
+      height: 16px;
+      background: radial-gradient(ellipse, #8e24aa, #6a1b9a, #4a148c);
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
 
     .octahedron {
-      width: 50px;
-      height: 50px;
-      background: linear-gradient(45deg, #66bb6a, #4caf50);
-      border: 2px solid #4caf50;
-      transform: rotate(45deg);
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(102, 187, 106, 0.5);
+      position: relative;
+      width: 45px;
+      height: 45px;
+      background: linear-gradient(45deg, #a5d6a7, #66bb6a, #4caf50, #2e7d32);
+      border: 1px solid #4caf50;
+      transform: rotate(45deg) rotateX(15deg) rotateY(15deg);
+      border-radius: 8px;
+      box-shadow: 
+        0 0 20px rgba(102, 187, 106, 0.6),
+        3px -3px 0 rgba(76, 175, 80, 0.8);
     }
 
-    .torus {
-      width: 60px;
-      height: 60px;
-      border: 15px solid #f06292;
-      border-radius: 50%;
-      background: transparent;
-      box-shadow: 0 0 20px rgba(240, 98, 146, 0.5);
+    .octahedron::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      width: 45px;
+      height: 45px;
+      background: linear-gradient(45deg, #c8e6c9, #a5d6a7, #81c784);
+      border: 1px solid #66bb6a;
+      border-radius: 8px;
+      transform: rotateZ(90deg);
+    }
+
+    .diamond {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #f8bbd9, #f06292, #e91e63, #ad1457);
+      transform: rotate(45deg) rotateX(15deg) rotateY(15deg);
+      border: 1px solid #e91e63;
+      box-shadow: 
+        0 0 25px rgba(240, 98, 146, 0.7),
+        4px -4px 0 rgba(233, 30, 99, 0.8),
+        8px -8px 0 rgba(173, 20, 87, 0.6);
+    }
+
+    .diamond::before {
+      content: '';
+      position: absolute;
+      top: -25px;
+      left: 12.5px;
+      width: 0;
+      height: 0;
+      border-left: 12.5px solid transparent;
+      border-right: 12.5px solid transparent;
+      border-bottom: 25px solid #f48fb1;
+      transform: rotateX(-45deg);
+    }
+
+    .diamond::after {
+      content: '';
+      position: absolute;
+      bottom: -25px;
+      left: 12.5px;
+      width: 0;
+      height: 0;
+      border-left: 12.5px solid transparent;
+      border-right: 12.5px solid transparent;
+      border-top: 25px solid #c2185b;
+      transform: rotateX(45deg);
     }
 
     @keyframes rotate3d {
@@ -204,8 +350,7 @@
         width: 60px;
         height: 60px;
       }
-      
-      .cube, .sphere, .torus {
+        .cube, .sphere, .diamond {
         width: 45px;
         height: 45px;
       }
@@ -272,14 +417,12 @@
       </div>
       <div class="object-label">Octaedro</div>
       <div class="object-id">Objeto #5</div>
-    </div>
-
-    <!-- Objeto 6: Toro -->
+    </div>    <!-- Objeto 6: Rombo -->
     <div class="object-card" data-object-id="6">
       <div class="object-3d">
-        <div class="torus"></div>
+        <div class="diamond"></div>
       </div>
-      <div class="object-label">Toro</div>
+      <div class="object-label">Rombo</div>
       <div class="object-id">Objeto #6</div>
     </div>
   </div>
@@ -438,15 +581,22 @@
         card.classList.remove('selected');
       });
       selectedObjectId = null;
-    }
-
-    // Exponer funciones globalmente para debugging
+    }    // Exponer funciones globalmente para debugging
     window.EEGControl = {
       selectObject,
       getSelectedObject,
       clearSelection,
       sendObjectSelection
     };
+
+    // Aplicar efectos 3D mejorados después de cargar
+    document.addEventListener('DOMContentLoaded', () => {
+      // Agregar perspectiva a los contenedores 3D
+      document.querySelectorAll('.object-3d').forEach(container => {
+        container.style.perspective = '200px';
+        container.style.perspectiveOrigin = 'center center';
+      });
+    });
   </script>
 </body>
 </html>
