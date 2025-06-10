@@ -225,7 +225,7 @@
     function connectWebSocket() {
       try {
         // Usar la misma URL base que el index.html pero adaptada para este control
-        ws = new WebSocket('ws://127.0.0.1:4649');
+        ws = new WebSocket('wss://ed19-2001-1388-53a1-b6bd-4804-fa67-2f8e-c445.ngrok-free.app');
         
         ws.addEventListener('open', () => {
           console.log('WebSocket conectado - Control EEG');
