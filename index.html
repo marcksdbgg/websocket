@@ -32,6 +32,7 @@
 </head>
 <body>
   <div id="debug">0</div>
+
   <script>
     /* ---------------------------------
        Conexión WebSocket
@@ -83,11 +84,16 @@
     });
 
     document.addEventListener('mouseup',    e => {
+      // Usamos getHalf con el evento original porque en mouseup,
+      // la posición puede no ser la misma, pero la intención es liberar
+      // el botón que se presionó. Para simplificar, asumimos que
+      // la liberación corresponde a la zona donde se encuentra el cursor.
+      // Una lógica más compleja podría recordar qué botón se presionó.
       getHalf(e) === 'red' ? endPressRed()   : endPressBlue();
     });
 
     document.addEventListener('touchstart', e => {
-      e.preventDefault();
+      e.preventDefault(); // Evita comportamientos por defecto como el zoom o scroll.
       for (const t of e.touches) {
         if (t.clientY < window.innerHeight / 2) {
             startPressRed();
@@ -99,17 +105,28 @@
 
     function handleTouchEndLikeEvent (e) {
       let stillRed = false, stillBlue = false;
+      // Comprueba qué zonas siguen siendo tocadas
       for (const t of e.touches) {
         if (t.clientY < window.innerHeight / 2) stillRed  = true;
         else                                   stillBlue = true;
       }
+      // Si una zona ya no está siendo tocada, finaliza la presión
       if (!stillRed)  endPressRed();
       if (!stillBlue) endPressBlue();
-    }    document.addEventListener('touchend',    handleTouchEndLikeEvent);
+    }
+
+    document.addEventListener('touchend',    handleTouchEndLikeEvent);
     document.addEventListener('touchcancel', handleTouchEndLikeEvent);
 
+
     /* ---------------------------------
-       Botones de volumen (hardware) - Para dispositivos compatibles
+       Botones de volumen (hardware) - VERSIÓN CORREGIDA
+       NOTA:
+        - En móviles Android la tecla de volumen NO llega al navegador.
+        - Este "shim" solo funcionará donde el evento exista
+          (teclados externos, Android TV, etc.).
+        - Si necesitas soporte en móviles, usa Cordova/Capacitor +
+          'cordova-plugin-volume-buttons' o similar.
     -----------------------------------*/
     const VOLUME_UP_KEYS   = new Set(['AudioVolumeUp', 'VolumeUp']);
     const VOLUME_DOWN_KEYS = new Set(['AudioVolumeDown', 'VolumeDown']);
@@ -133,9 +150,11 @@
       if (isVolDown(e)) { e.preventDefault(); endPressBlue();   }
     }
 
-    // Usamos la fase "capture" para garantizar prioridad
+    // Usamos la fase "capture" (tercer argumento true) para garantizar
+    // prioridad sobre otros manejadores y prevenir la acción por defecto.
     window.addEventListener('keydown', handleKeyDown, true);
     window.addEventListener('keyup',   handleKeyUp,   true);
+
 
     /* ---------------------------------
        Lógica pelota ROJA (superior)
@@ -151,7 +170,7 @@
     function endPressRed () {
       if (isPressedRed) {
         isPressedRed     = false;
-        pressStartTimeRed= 0;
+        pressStartTimeRed= 0; // Reiniciar tiempo de presión
         animateFallRed();
       }
     }
@@ -167,7 +186,7 @@
     }
     function animateFallRed () {
       if (isPressedRed || valueRed <= 0) {
-        if (valueRed <= 0) valueRed = 0;
+        if (valueRed <= 0) valueRed = 0; // Asegurar que no sea negativo
         updateDebug();
         return;
       }
@@ -192,7 +211,7 @@
     function endPressBlue () {
       if (isPressedBlue) {
         isPressedBlue     = false;
-        pressStartTimeBlue= 0;
+        pressStartTimeBlue= 0; // Reiniciar tiempo de presión
         animateFallBlue();
       }
     }
@@ -208,7 +227,7 @@
     }
     function animateFallBlue () {
       if (isPressedBlue || valueBlue <= 0) {
-        if (valueBlue <= 0) valueBlue = 0;
+        if (valueBlue <= 0) valueBlue = 0; // Asegurar que no sea negativo
         updateDebug();
         return;
       }
