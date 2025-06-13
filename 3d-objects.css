@@ -1,156 +1,467 @@
-/* ==========================================================
-   CSS para Objetos 3D - Versión Corregida y Final
-   ========================================================== */
+/* ===================================================
+   CSS para Objetos 3D Mejorados - Evaluador EEG
+   =================================================== */
 
-@keyframes rotate-idle {
-  from { transform: rotateX(15deg) rotateY(0deg); }
-  to   { transform: rotateX(15deg) rotateY(360deg); }
-}
-
-/* Contenedor principal de la figura 3D que anima */
-.object-3d-container > div {
-  width: 100%;
-  height: 100%;
-  position: relative;
+/* Configuración base para efectos 3D simplificados */
+.object-3d {
+  perspective: 300px;
+  perspective-origin: center center;
   transform-style: preserve-3d;
-  animation: rotate-idle 16s linear infinite;
-}
-
-/* Detiene la rotación cuando se selecciona y lo deja en un ángulo fijo */
-.object-card.selected .object-3d-container > div {
-  animation: none;
-  transform: rotateX(15deg) rotateY(25deg);
-}
-
-.face {
-  position: absolute;
-  /* Opcional: añade un ligero borde para definir mejor las caras */
-  /* border: 1px solid rgba(0,0,0,0.2); */
-}
-
-/* ===============================
-   1. CUBO
-   =============================== */
-.cube {
-  width: 70px;
-  height: 70px;
-}
-.cube .face {
-  width: 100%;
-  height: 100%;
-  opacity: 0.9;
-}
-.cube .front  { background: #ff7e5f; transform: rotateY(  0deg) translateZ(35px); }
-.cube .back   { background: #d73a49; transform: rotateY(180deg) translateZ(35px); }
-.cube .right  { background: #ff5f6d; transform: rotateY( 90deg) translateZ(35px); }
-.cube .left   { background: #ff4e50; transform: rotateY(-90deg) translateZ(35px); }
-.cube .top    { background: #ffac6f; transform: rotateX( 90deg) translateZ(35px); }
-.cube .bottom { background: #b71c1c; transform: rotateX(-90deg) translateZ(35px); }
-
-
-/* ===============================
-   2. ESFERA
-   =============================== */
-.sphere {
   width: 80px;
   height: 80px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 60% 30%, #a8e063, #45a01a 85%);
-  box-shadow: inset -15px -15px 30px rgba(0,0,0,0.3);
-  transform-style: preserve-3d; /* Para que la animación no afecte el degradado */
+  margin-bottom: 15px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+/* Animación suave de rotación para objetos seleccionados */
+.object-card.selected .object-3d {
+  filter: brightness(1.15) drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
 }
 
 /* ===============================
-   3. PIRÁMIDE (correcta)
+   CUBO 3D SIMPLE
+   =============================== */
+.cube {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  transform-style: preserve-3d;
+  transform: rotateX(-15deg) rotateY(15deg);
+  margin: 15px auto;
+}
+
+.cube-face {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.cube-front {
+  background: #ff5722;
+  transform: translateZ(25px);
+}
+
+.cube-back {
+  background: #d32f2f;
+  transform: translateZ(-25px) rotateY(180deg);
+}
+
+.cube-right {
+  background: #f44336;
+  transform: rotateY(90deg) translateZ(25px);
+}
+
+.cube-left {
+  background: #c62828;
+  transform: rotateY(-90deg) translateZ(25px);
+}
+
+.cube-top {
+  background: #ff6b6b;
+  transform: rotateX(90deg) translateZ(25px);
+}
+
+.cube-bottom {
+  background: #b71c1c;
+  transform: rotateX(-90deg) translateZ(25px);
+}
+
+/* ===============================
+   ESFERA 3D MEJORADA
+   =============================== */
+.sphere {
+  width: 55px;
+  height: 55px;
+  background: 
+    radial-gradient(ellipse at 20% 20%, rgba(255, 255, 255, 0.6) 0%, transparent 40%),
+    radial-gradient(circle, #81c784 0%, #4caf50 50%, #2e7d32 100%);
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 
+    0 6px 20px rgba(76, 175, 80, 0.5),
+    inset -8px -8px 16px rgba(46, 125, 50, 0.4);
+  transform: rotateY(10deg);
+}
+
+.sphere::before {
+  content: '';
+  position: absolute;
+  top: 12%;
+  left: 18%;
+  width: 14px;
+  height: 14px;
+  background: 
+    radial-gradient(circle, 
+      rgba(255, 255, 255, 0.9) 0%, 
+      rgba(255, 255, 255, 0.6) 60%,
+      transparent 100%);
+  border-radius: 50%;
+}
+
+/* ===============================
+   PIRÁMIDE 3D MEJORADA
    =============================== */
 .pyramid {
-    width: 70px;
-    height: 70px;
+  position: relative;
+  width: 50px;
+  height: 50px;
+  transform: rotateX(-10deg) rotateY(20deg);
+  margin: 10px auto;
 }
-.pyramid .face {
-    width: 100%;
-    height: 100%;
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-    transform-origin: 50% 100%;
-}
-.pyramid .p-side1 { background: #ffd54f; transform: rotateY(  0deg) rotateX(25deg) translateZ(18px); }
-.pyramid .p-side2 { background: #ffca28; transform: rotateY( 90deg) rotateX(25deg) translateZ(18px); }
-.pyramid .p-side3 { background: #ffc107; transform: rotateY(180deg) rotateX(25deg) translateZ(18px); }
-.pyramid .p-side4 { background: #ffb300; transform: rotateY(270deg) rotateX(25deg) translateZ(18px); }
 
+/* Cara frontal principal */
+.pyramid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-bottom: 50px solid #ff9800;
+  filter: drop-shadow(0 4px 12px rgba(255, 152, 0, 0.4));
+}
+
+/* Cara lateral derecha */
+.pyramid::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 65%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 50px solid #f57c00;
+  transform: rotateY(30deg) translateX(-50%);
+  transform-origin: bottom center;
+}
 
 /* ===============================
-   4. CILINDRO
+   CILINDRO 3D MEJORADO
    =============================== */
 .cylinder {
-    width: 60px;
-    height: 90px;
+  position: relative;
+  width: 40px;
+  height: 55px;
+  background: 
+    linear-gradient(135deg, 
+      #ce93d8 0%, 
+      #ba68c8 30%, 
+      #9c27b0 60%, 
+      #7b1fa2 100%);
+  border-radius: 20px;
+  transform: rotateX(8deg) rotateY(-15deg);
+  box-shadow: 
+    0 6px 20px rgba(156, 39, 176, 0.5),
+    inset -6px 0 12px rgba(123, 31, 162, 0.3);
 }
-.cylinder .c-body {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to right, #da22ff, #9733ee);
-    position: relative;
-    transform-style: preserve-3d;
+
+.cylinder::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 8px;
+  background: 
+    radial-gradient(ellipse, 
+      rgba(255, 255, 255, 0.3) 0%,
+      #e1bee7 30%, 
+      #ce93d8 100%);
+  border-radius: 50%;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2);
 }
-.cylinder .c-body::before, .cylinder .c-body::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    width: 100%;
-    height: 20px;
-    border-radius: 50%;
-}
-.cylinder .c-body::before { /* Tapa superior */
-  top: 0;
-  transform: translateY(-50%);
-  background: #d46cff;
-}
-.cylinder .c-body::after { /* Tapa inferior */
-  bottom: 0;
-  transform: translateY(50%);
-  background: #aa3ee0;
+
+.cylinder::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 8px;
+  background: 
+    radial-gradient(ellipse, 
+      #6a1b9a 0%, 
+      #4a148c 60%, 
+      #2d0a4e 100%);
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* ===============================
-   5. ROMBO / OCTAEDRO (correcto)
+   OCTAEDRO 3D MEJORADO
    =============================== */
-.rhombus {
-    width: 60px;
-    height: 60px;
+.octahedron {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  transform: rotateX(15deg) rotateY(25deg);
+  margin: 10px auto;
 }
-.rhombus .face {
-    width: 100%;
-    height: 100%;
-    clip-path: polygon(50% 0, 0 50%, 50% 100%);
-    opacity: 0.85;
+
+/* Pirámide superior */
+.octahedron::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 25px solid transparent;
+  border-right: 25px solid transparent;
+  border-bottom: 30px solid #66bb6a;
+  filter: drop-shadow(0 2px 8px rgba(102, 187, 106, 0.4));
+  box-shadow: inset -2px -2px 4px rgba(56, 142, 60, 0.3);
 }
-.rhombus .r-s1 { background: #4dd0e1; transform: rotateY(0deg)   skewX(-30deg); }
-.rhombus .r-s2 { background: #26c6da; transform: rotateY(0deg)   skewX(30deg);  }
-.rhombus .r-s3 { background: #00bcd4; transform: rotateY(60deg)  skewX(-30deg); }
-.rhombus .r-s4 { background: #00acc1; transform: rotateY(60deg)  skewX(30deg);  }
-.rhombus .r-s5 { background: #0097a7; transform: rotateY(120deg) skewX(-30deg); }
-.rhombus .r-s6 { background: #00838f; transform: rotateY(120deg) skewX(30deg);  }
-.rhombus .r-s7 { background: #4dd0e1; transform: rotateY(180deg) skewX(-30deg); } /* Repetidos para el otro lado */
-.rhombus .r-s8 { background: #26c6da; transform: rotateY(180deg) skewX(30deg);  }
+
+/* Pirámide inferior */
+.octahedron::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 25px solid transparent;
+  border-right: 25px solid transparent;
+  border-top: 30px solid #4caf50;
+  filter: brightness(0.85) drop-shadow(0 2px 6px rgba(76, 175, 80, 0.3));
+}
+
+/* Cara lateral visible */
+.octahedron-side {
+  position: absolute;
+  top: 50%;
+  left: 60%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-bottom: 20px solid #81c784;
+  transform: rotateY(45deg) translateY(-50%);
+  opacity: 0.9;
+}
 
 /* ===============================
-   6. GEMA (2D)
+   ROMBO/DIAMANTE 3D MEJORADO
    =============================== */
 .diamond {
-    width: 70px;
-    height: 70px;
-    position: relative;
-    transform-style: flat; /* Este es 2D */
-    animation: none; /* Sin animación de rotación 3D */
-    transform: rotate(45deg);
+  position: relative;
+  width: 50px;
+  height: 50px;
+  transform: rotateX(10deg) rotateY(20deg);
+  margin: 5px auto;
 }
-.diamond .d-top {
-    width: 50px; height: 50px; background: #f06292;
-    clip-path: polygon(0 0, 100% 0, 50% 50%); margin: 0 auto;
+
+/* Parte superior del diamante */
+.diamond::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 22px solid transparent;
+  border-right: 22px solid transparent;
+  border-bottom: 22px solid #f8bbd9;
+  filter: drop-shadow(0 2px 8px rgba(248, 187, 217, 0.5));
 }
-.diamond .d-bottom {
-    width: 70px; height: 70px; background: #e91e63;
-    clip-path: polygon(50% 20%, 0 70%, 100% 70%);
-    margin: -15px auto 0;
+
+/* Parte media del diamante */
+.diamond {
+  background: 
+    linear-gradient(135deg, 
+      #f06292 0%, 
+      #e91e63 50%, 
+      #ad1457 100%);
+  width: 38px;
+  height: 12px;
+  transform: translateX(-50%) translateY(-50%) rotateX(10deg) rotateY(20deg);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
+  box-shadow: 
+    0 4px 12px rgba(240, 98, 146, 0.4),
+    inset -2px -2px 6px rgba(173, 20, 87, 0.3);
+}
+
+/* Parte inferior del diamante */
+.diamond::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 18px solid transparent;
+  border-right: 18px solid transparent;
+  border-top: 28px solid #e91e63;
+  filter: brightness(0.8) drop-shadow(0 2px 6px rgba(233, 30, 99, 0.4));
+}
+
+.diamond-shine {
+  position: absolute;
+  top: 20%;
+  left: 30%;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+}
+
+/* ===============================
+   ANIMACIÓN MEJORADA DE ROTACIÓN
+   =============================== */
+@keyframes simple-rotate {
+  0% { 
+    transform: rotateY(0deg) rotateX(-5deg); 
+  }
+  25% { 
+    transform: rotateY(90deg) rotateX(-8deg); 
+  }
+  50% { 
+    transform: rotateY(180deg) rotateX(-5deg); 
+  }
+  75% { 
+    transform: rotateY(270deg) rotateX(-2deg); 
+  }
+  100% { 
+    transform: rotateY(360deg) rotateX(-5deg); 
+  }
+}
+
+/* Animaciones específicas para cada objeto */
+@keyframes cube-rotate {
+  0% { 
+    transform: rotateX(-15deg) rotateY(15deg); 
+  }
+  100% { 
+    transform: rotateX(-15deg) rotateY(375deg); 
+  }
+}
+
+@keyframes sphere-rotate {
+  0% { 
+    transform: rotateY(10deg); 
+  }
+  100% { 
+    transform: rotateY(370deg); 
+  }
+}
+
+@keyframes pyramid-rotate {
+  0% { 
+    transform: rotateX(-10deg) rotateY(20deg); 
+  }
+  100% { 
+    transform: rotateX(-10deg) rotateY(380deg); 
+  }
+}
+
+@keyframes cylinder-rotate {
+  0% { 
+    transform: rotateX(8deg) rotateY(-15deg); 
+  }
+  100% { 
+    transform: rotateX(8deg) rotateY(345deg); 
+  }
+}
+
+@keyframes octahedron-rotate {
+  0% { 
+    transform: rotateX(15deg) rotateY(25deg); 
+  }
+  100% { 
+    transform: rotateX(15deg) rotateY(385deg); 
+  }
+}
+
+@keyframes diamond-rotate {
+  0% { 
+    transform: rotateX(10deg) rotateY(20deg); 
+  }
+  100% { 
+    transform: rotateX(10deg) rotateY(380deg); 
+  }
+}
+
+/* Aplicar animaciones específicas */
+.object-card.selected .cube {
+  animation: cube-rotate 3s linear infinite;
+}
+
+.object-card.selected .sphere {
+  animation: sphere-rotate 3s linear infinite;
+}
+
+.object-card.selected .pyramid {
+  animation: pyramid-rotate 3s linear infinite;
+}
+
+.object-card.selected .cylinder {
+  animation: cylinder-rotate 3s linear infinite;
+}
+
+.object-card.selected .octahedron {
+  animation: octahedron-rotate 3s linear infinite;
+}
+
+.object-card.selected .diamond {
+  animation: diamond-rotate 3s linear infinite;
+}
+
+/* Efecto hover simple */
+.object-3d:hover {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+  transition: all 0.3s ease;
+}
+
+/* ===============================
+   RESPONSIVE PARA MÓVILES
+   =============================== */
+@media (max-width: 768px) {
+  .object-3d {
+    width: 60px;
+    height: 60px;
+    perspective: 250px;
+  }
+  
+  .cube, .octahedron, .diamond {
+    transform: scale(0.8);
+  }
+  
+  .sphere {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .cylinder {
+    width: 32px;
+    height: 45px;
+    border-radius: 16px;
+  }
+  
+  .pyramid {
+    border-left-width: 25px;
+    border-right-width: 25px;
+    border-bottom-width: 40px;
+  }
 }
