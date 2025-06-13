@@ -10,74 +10,70 @@
       margin: 0; padding: 0; width: 100vw; height: 100vh;
       overflow: hidden; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
       font-family: 'Arial', sans-serif; color: white; touch-action: none;
-      -webkit-user-select: none; user-select: none;
     }
     .header {
       text-align: center; padding: 20px 0; background: rgba(0, 0, 0, 0.3);
       backdrop-filter: blur(10px);
     }
     .title { font-size: 2.5em; font-weight: bold; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-    .subtitle { font-size: 1.2em; margin: 10px 0 0 0; color: #e0e0e0; font-weight: 300; }
+    .subtitle { font-size: 1.2em; margin: 10px 0 0 0; color: #e0e0e0; }
     .objects-container {
-      display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr);
-      gap: 30px; padding: 40px; height: calc(100vh - 200px); box-sizing: border-box;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;
+      padding: 40px; height: calc(100vh - 150px); box-sizing: border-box;
     }
     .evaluado-info {
       position: fixed; top: 20px; left: 20px; width: 280px;
-      background: rgba(0, 0, 0, 0.9); border: 2px solid rgba(0, 255, 136, 0.5);
+      background: rgba(0, 0, 0, 0.8); border: 1px solid rgba(0, 255, 136, 0.4);
       border-radius: 15px; padding: 15px; backdrop-filter: blur(15px);
       font-family: monospace; display: none; z-index: 1000;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
     .evaluado-info.visible { display: block; animation: slideInLeft 0.3s ease-out; }
-    @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    .info-title { font-size: 1.1em; font-weight: bold; color: #00ff88; margin-bottom: 15px; text-align: center; position: relative; }
-    .close-info-btn {
-      position: absolute; top: -2px; right: 0; background: none; border: none;
-      color: #ff4444; font-size: 1.2em; cursor: pointer; padding: 0; width: 20px; height: 20px;
-      display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s ease;
-    }
-    .close-info-btn:hover { background: rgba(255, 68, 68, 0.2); transform: scale(1.1); }
-    .info-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 8px; }
-    .info-label { color: #e0e0e0; font-size: 0.9em; }
-    .info-value { color: #fff; font-weight: bold; font-size: 1em; }
-    .value-red { color: #ffca28; }
+    @keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+    .info-title { font-size: 1.1em; font-weight: bold; color: #00ff88; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center; }
+    .close-info-btn { background: none; border: none; color: #ff4444; font-size: 1.5em; cursor: pointer; }
+    .info-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .info-label { color: #ccc; }
+    .info-value { color: #fff; font-weight: bold; }
+    .value-red { color: #ffc107; }
+
     .object-card {
-      background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 20px; display: flex; flex-direction: column;
-      align-items: center; justify-content: flex-end; /* Alinea contenido abajo para dar espacio para subir */
-      cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px);
-      position: relative; overflow: hidden; padding-bottom: 15px; /* Padding para el texto */
-      perspective: 1000px; /* !IMPORTANTE: Perspectiva para renderizar 3D */
+      align-items: center; justify-content: flex-end;
+      cursor: pointer; transition: all 0.3s ease;
+      position: relative; padding: 20px; box-sizing: border-box;
+      /* Punto de fuga para la perspectiva 3D */
+      perspective: 1200px;
     }
     .object-card:hover {
-      transform: translateY(-5px); border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.2);
+      border-color: rgba(0, 255, 136, 0.7);
+      background: rgba(0, 255, 136, 0.1);
     }
     .object-card.selected {
-      border-color: #00ff88; background: rgba(0, 255, 136, 0.2);
+      border-color: #00ff88; transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(0, 255, 136, 0.5);
     }
     .object-3d-container {
-        width: 100%;
-        height: 120px; /* Contenedor para el movimiento vertical */
+        width: 150px; /* Ancho del área 3D */
+        height: 150px; /* Alto del área 3D */
+        position: relative;
         display: flex;
-        align-items: flex-end; /* El objeto empieza abajo */
+        align-items: center;
         justify-content: center;
+        /* El movimiento vertical se aplicará aquí */
         transition: transform 0.2s linear;
     }
-    .object-label { font-size: 1.1em; font-weight: 600; text-align: center; margin-bottom: 5px; }
-    .object-id { font-size: 0.9em; opacity: 0.7; font-weight: 300; }
+    .object-label-group { text-align: center; margin-top: 15px; }
+    .object-label { font-size: 1.1em; font-weight: 600; }
+    .object-id { font-size: 0.9em; opacity: 0.7; }
     .status {
       position: fixed; bottom: 20px; left: 20px; background: rgba(0, 0, 0, 0.7);
-      padding: 10px 15px; border-radius: 10px; font-family: monospace; font-size: 0.9em;
+      padding: 8px 12px; border-radius: 10px; font-family: monospace; font-size: 0.9em;
+      display: flex; align-items: center; gap: 8px;
     }
-    .status.connected { border-left: 4px solid #00ff88; }
-    .status.disconnected { border-left: 4px solid #ff4444; }
-
-    @media (max-width: 768px) {
-      .objects-container { grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 20px; }
-      .title { font-size: 2em; }
-      .evaluado-info { top: 10px; left: 10px; right: 10px; width: auto; }
-    }
+    .status::before { content: ''; display: block; width: 10px; height: 10px; border-radius: 50%;}
+    .status.connected::before { background-color: #00ff88;}
+    .status.disconnected::before { background-color: #ff4444;}
   </style>
 </head>
 <body>
@@ -88,57 +84,59 @@
 
   <div class="objects-container">
     <div class="object-card" data-object-id="1">
-        <div class="object-3d-container"><div class="cube">
-            <div class="face front"></div><div class="face back"></div>
-            <div class="face left"></div><div class="face right"></div>
-            <div class="face top"></div><div class="face bottom"></div>
-        </div></div>
-        <div class="object-label">Cubo</div><div class="object-id">Objeto #1</div>
+      <div class="object-3d-container"><div class="cube">
+          <div class="face front"></div> <div class="face back"></div>
+          <div class="face right"></div> <div class="face left"></div>
+          <div class="face top"></div>   <div class="face bottom"></div>
+      </div></div>
+      <div class="object-label-group"><div class="object-label">Cubo</div><div class="object-id">Objeto #1</div></div>
     </div>
     <div class="object-card" data-object-id="2">
         <div class="object-3d-container"><div class="sphere"></div></div>
-        <div class="object-label">Esfera</div><div class="object-id">Objeto #2</div>
+        <div class="object-label-group"><div class="object-label">Esfera</div><div class="object-id">Objeto #2</div></div>
     </div>
     <div class="object-card" data-object-id="3">
-        <div class="object-3d-container"><div class="pyramid">
-            <div class="face side1"></div><div class="face side2"></div>
-            <div class="face side3"></div><div class="face side4"></div>
-            <div class="face p-bottom"></div>
-        </div></div>
-        <div class="object-label">Pirámide</div><div class="object-id">Objeto #3</div>
+      <div class="object-3d-container"><div class="pyramid">
+          <div class="face p-side1"></div><div class="face p-side2"></div>
+          <div class="face p-side3"></div><div class="face p-side4"></div>
+      </div></div>
+      <div class="object-label-group"><div class="object-label">Pirámide</div><div class="object-id">Objeto #3</div></div>
     </div>
     <div class="object-card" data-object-id="4">
-        <div class="object-3d-container"><div class="cylinder">
-            <div class="c-top"></div><div class="c-bottom"></div>
-        </div></div>
-        <div class="object-label">Cilindro</div><div class="object-id">Objeto #4</div>
+      <div class="object-3d-container"><div class="cylinder">
+          <div class="c-body">
+              <!-- Se usarán pseudo-elementos para las tapas -->
+          </div>
+      </div></div>
+      <div class="object-label-group"><div class="object-label">Cilindro</div><div class="object-id">Objeto #4</div></div>
     </div>
     <div class="object-card" data-object-id="5">
-        <div class="object-3d-container"><div class="rhombus">
-            <!-- 8 caras para el rombo/octaedro -->
-            <div class="face r-f-t"></div><div class="face r-f-b"></div>
-            <div class="face r-b-t"></div><div class="face r-b-b"></div>
-            <div class="face r-l-t"></div><div class="face r-l-b"></div>
-            <div class="face r-r-t"></div><div class="face r-r-b"></div>
-        </div></div>
-        <div class="object-label">Rombo</div><div class="object-id">Objeto #5</div>
+      <div class="object-3d-container"><div class="rhombus">
+          <div class="face r-s1"></div><div class="face r-s2"></div>
+          <div class="face r-s3"></div><div class="face r-s4"></div>
+          <div class="face r-s5"></div><div class="face r-s6"></div>
+          <div class="face r-s7"></div><div class="face r-s8"></div>
+      </div></div>
+      <div class="object-label-group"><div class="object-label">Rombo</div><div class="object-id">Objeto #5</div></div>
     </div>
     <div class="object-card" data-object-id="6">
-        <div class="object-3d-container"><div class="diamond"></div></div>
-        <div class="object-label">Gema</div><div class="object-id">Objeto #6</div>
+      <div class="object-3d-container"><div class="diamond">
+        <div class="d-top"></div><div class="d-bottom"></div>
+      </div></div>
+      <div class="object-label-group"><div class="object-label">Gema</div><div class="object-id">Objeto #6</div></div>
     </div>
   </div>
 
   <div class="evaluado-info" id="evaluadoInfo">
-      <div class="info-title">📊 Información del Evaluado<button class="close-info-btn" onclick="clearSelection()">×</button></div>
-      <div class="info-item"><span class="info-label">Objeto:</span><span class="info-value" id="selectedObjectName">-</span></div>
-      <div class="info-item"><span class="info-label">Concentración:</span><span class="info-value value-red" id="concentrationDisplay">0</span></div>
-      <div class="info-item"><span class="info-label">Estado:</span><span class="info-value" id="evaluadoStatus">Esperando...</span></div>
+    <div class="info-title"><span>Información del Evaluado</span><button class="close-info-btn" onclick="clearSelection()" title="Cerrar">×</button></div>
+    <div class="info-item"><span class="info-label">Objeto:</span><span class="info-value" id="selectedObjectName">-</span></div>
+    <div class="info-item"><span class="info-label">Concentración:</span><span class="info-value value-red" id="concentrationDisplay">0</span></div>
+    <div class="info-item"><span class="info-label">Estado:</span><span class="info-value" id="evaluadoStatus">Esperando...</span></div>
   </div>
 
-  <div class="status disconnected" id="status">🔴 WebSocket: Desconectado</div>
+  <div class="status disconnected" id="status">WebSocket: Desconectado</div>
 
-<script>
+  <script>
     const statusElement = document.getElementById('status');
     const evaluadoInfoElement = document.getElementById('evaluadoInfo');
     const objectCards = document.querySelectorAll('.object-card');
@@ -148,46 +146,30 @@
     let ws, wsEvaluado = null;
     let selectedObjectId = null;
 
-    const objectNames = {'1': 'Cubo','2': 'Esfera','3': 'Pirámide','4': 'Cilindro','5': 'Rombo','6': 'Gema'};
+    const objectNames = {'1':'Cubo','2':'Esfera','3':'Pirámide','4':'Cilindro','5':'Rombo','6':'Gema'};
     let evaluadoData = { concentration: 0, lastUpdate: null };
 
     function connectWebSocket() {
-        // --- RESTAURANDO LA LÓGICA ORIGINAL DE WEBSOCKET ---
+        const wsUrl = 'ws://127.0.0.1:4649';
         try {
-            // Conexión para enviar selección de objetos
-            ws = new WebSocket('ws://127.0.0.1:4649');
-            ws.onopen = () => updateStatus('🟢 WebSocket: Conectado', 'connected');
+            ws = new WebSocket(wsUrl);
+            ws.onopen = () => { statusElement.textContent = 'WebSocket: Conectado'; statusElement.className = 'status connected'; };
             ws.onerror = (e) => console.error('WS Control Error:', e);
-            ws.onclose = (e) => {
-                updateStatus('🔴 WebSocket: Desconectado', 'disconnected');
+            ws.onclose = () => {
+                statusElement.textContent = 'WebSocket: Desconectado'; statusElement.className = 'status disconnected';
                 setTimeout(connectWebSocket, 3000);
             };
-
-            // Conexión para recibir datos del evaluado
-            wsEvaluado = new WebSocket('ws://127.0.0.1:4649');
+            wsEvaluado = new WebSocket(wsUrl);
             wsEvaluado.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
-                    // Usando el formato de tu primer script
-                    if (data.ball === 'red') {
-                        updateEvaluadoData(data);
-                    }
+                    if (data.ball === 'red') updateEvaluadoData(data);
                 } catch (error) { console.error('Error procesando datos:', error); }
             };
-        } catch (error) {
-            console.error('Error al conectar WebSocket:', error);
-            updateStatus('🔴 WebSocket: Error', 'disconnected');
-            setTimeout(connectWebSocket, 3000);
-        }
-    }
-
-    function updateStatus(message, statusClass) {
-        statusElement.textContent = message;
-        statusElement.className = `status ${statusClass}`;
+        } catch (error) { setTimeout(connectWebSocket, 3000); }
     }
 
     function updateEvaluadoData(data) {
-        // Asumiendo que `data.y` es un valor entre 0 y 1
         evaluadoData.concentration = Math.max(0, Math.min(100, Math.round(data.y * 100)));
         evaluadoData.lastUpdate = new Date();
         updateEvaluadoDisplay();
@@ -195,62 +177,50 @@
 
     function updateEvaluadoDisplay() {
         if (!selectedObjectId) return;
-
         concentrationDisplay.textContent = evaluadoData.concentration;
-
-        const timeSinceUpdate = new Date() - (evaluadoData.lastUpdate || 0);
-        evaluadoStatus.textContent = timeSinceUpdate < 1500 ? 'Activo' : 'Inactivo';
+        evaluadoStatus.textContent = (new Date() - (evaluadoData.lastUpdate || 0)) < 1500 ? 'Activo' : 'Inactivo';
 
         const activeContainer = document.querySelector(`.object-card[data-object-id="${selectedObjectId}"] .object-3d-container`);
         if (activeContainer) {
-            const travelDistance = 90; // Rango de movimiento vertical en px
+            const travelDistance = 120;
             const yPos = -(evaluadoData.concentration / 100) * travelDistance;
             activeContainer.style.transform = `translateY(${yPos}px)`;
         }
     }
 
     function selectObject(objectId) {
-        const previouslySelectedCard = document.querySelector('.object-card.selected');
-        if (previouslySelectedCard) {
-            previouslySelectedCard.classList.remove('selected');
-            const prevObjContainer = previouslySelectedCard.querySelector('.object-3d-container');
-            if (prevObjContainer) prevObjContainer.style.transform = 'translateY(0px)';
+        const prevSelected = document.querySelector('.object-card.selected');
+        if (prevSelected) {
+            prevSelected.classList.remove('selected');
+            const prevContainer = prevSelected.querySelector('.object-3d-container');
+            if (prevContainer) prevContainer.style.transform = 'translateY(0px)';
         }
-
         const selectedCard = document.querySelector(`[data-object-id="${objectId}"]`);
         if (selectedCard) {
             selectedCard.classList.add('selected');
             selectedObjectId = objectId;
             selectedObjectName.textContent = objectNames[objectId] || '-';
             evaluadoInfoElement.classList.add('visible');
-            evaluadoData.concentration = 0; // Reset
+            evaluadoData = { concentration: 0, lastUpdate: null }; // Reset
             updateEvaluadoDisplay();
-            sendObjectSelection(objectId);
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'object_selection', objectId: parseInt(objectId) }));
+            }
         }
     }
 
     function clearSelection() {
         const selectedCard = document.querySelector('.object-card.selected');
-        if (selectedCard) {
-            selectedCard.classList.remove('selected');
-            const objContainer = selectedCard.querySelector('.object-3d-container');
-            if (objContainer) objContainer.style.transform = 'translateY(0px)';
-        }
+        if (selectedCard) selectedCard.classList.remove('selected');
         selectedObjectId = null;
         evaluadoInfoElement.classList.remove('visible');
     }
 
-    function sendObjectSelection(objectId) {
-        if (!ws || ws.readyState !== WebSocket.OPEN) return;
-        const message = { type: 'object_selection', objectId: parseInt(objectId) };
-        ws.send(JSON.stringify(message));
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
-        connectWebSocket(); // Re-activado
+        connectWebSocket();
         objectCards.forEach(card => card.addEventListener('click', () => selectObject(card.getAttribute('data-object-id'))));
         document.addEventListener('keydown', e => { if (e.key >= '1' && e.key <= '6') selectObject(e.key); });
     });
-</script>
+  </script>
 </body>
 </html>
