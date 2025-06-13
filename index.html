@@ -31,37 +31,13 @@
   </style>
 </head>
 <body>
-
-  <div id="access-denied" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#111;color:#fff;z-index:9999;align-items:center;justify-content:center;font-size:2em;text-align:center;">Acceso denegado<br>Esta página solo está disponible desde un dispositivo autorizado.</div>
   <div id="debug">0</div>
-
   <script>
-    // --- Protección por IP pública ---
-    // Reemplaza esta IP por la de tu celular
-    const ALLOWED_IP = '190.232.106.137';
-    fetch('https://api.ipify.org?format=json')
-      .then(r => r.json())
-      .then(data => {
-        if (data.ip !== ALLOWED_IP) {
-          document.body.style.overflow = 'hidden';
-          document.getElementById('access-denied').style.display = 'flex';
-          document.getElementById('debug').style.display = 'none';
-        } else {
-          document.getElementById('access-denied').style.display = 'none';
-          document.getElementById('debug').style.display = '';
-        }
-      })
-      .catch(() => {
-        document.getElementById('access-denied').style.display = 'flex';
-        document.getElementById('debug').style.display = 'none';
-      });
-
-    // --- Lógica original (sin botones de volumen) ---
     /* ---------------------------------
        Conexión WebSocket
     -----------------------------------*/
     const ws = new WebSocket(
-      'wss://33a7-2001-1388-53a1-b6bd-2d8c-2a8d-baf6-e4e6.ngrok-free.app'
+      'wss://d9c9-190-239-91-177.ngrok-free.app'
     );
     ws.addEventListener('open', () => console.log('WebSocket conectado'));
     ws.addEventListener('error', e => console.error('WebSocket error:', e));
@@ -129,10 +105,37 @@
       }
       if (!stillRed)  endPressRed();
       if (!stillBlue) endPressBlue();
+    }    document.addEventListener('touchend',    handleTouchEndLikeEvent);
+    document.addEventListener('touchcancel', handleTouchEndLikeEvent);
+
+    /* ---------------------------------
+       Botones de volumen (hardware) - Para dispositivos compatibles
+    -----------------------------------*/
+    const VOLUME_UP_KEYS   = new Set(['AudioVolumeUp', 'VolumeUp']);
+    const VOLUME_DOWN_KEYS = new Set(['AudioVolumeDown', 'VolumeDown']);
+    const CODE_VOL_UP      = 24;   // keyCode que envían muchos mandos
+    const CODE_VOL_DOWN    = 25;
+
+    function isVolUp(e)   {
+      return VOLUME_UP_KEYS.has(e.key)   || e.keyCode === CODE_VOL_UP;
+    }
+    function isVolDown(e) {
+      return VOLUME_DOWN_KEYS.has(e.key) || e.keyCode === CODE_VOL_DOWN;
     }
 
-    document.addEventListener('touchend',    handleTouchEndLikeEvent);
-    document.addEventListener('touchcancel', handleTouchEndLikeEvent);
+    function handleKeyDown(e) {
+      if (isVolUp(e))   { e.preventDefault(); startPressRed();  }
+      if (isVolDown(e)) { e.preventDefault(); startPressBlue(); }
+    }
+
+    function handleKeyUp(e) {
+      if (isVolUp(e))   { e.preventDefault(); endPressRed();    }
+      if (isVolDown(e)) { e.preventDefault(); endPressBlue();   }
+    }
+
+    // Usamos la fase "capture" para garantizar prioridad
+    window.addEventListener('keydown', handleKeyDown, true);
+    window.addEventListener('keyup',   handleKeyUp,   true);
 
     /* ---------------------------------
        Lógica pelota ROJA (superior)
