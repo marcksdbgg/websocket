@@ -142,11 +142,17 @@
     <p class="subtitle">Seleccione un objeto para que el evaluado lo use</p>
   </div>
 
-  <div class="objects-container">
-    <!-- Objeto 1: Cubo -->
+  <div class="objects-container">    <!-- Objeto 1: Cubo -->
     <div class="object-card" data-object-id="1">
       <div class="object-3d">
-        <div class="cube"></div>
+        <div class="cube">
+          <div class="cube-face cube-front"></div>
+          <div class="cube-face cube-back"></div>
+          <div class="cube-face cube-right"></div>
+          <div class="cube-face cube-left"></div>
+          <div class="cube-face cube-top"></div>
+          <div class="cube-face cube-bottom"></div>
+        </div>
       </div>
       <div class="object-label">Cubo</div>
       <div class="object-id">Objeto #1</div>
@@ -189,7 +195,9 @@
     </div>    <!-- Objeto 6: Rombo -->
     <div class="object-card" data-object-id="6">
       <div class="object-3d">
-        <div class="diamond"></div>
+        <div class="diamond">
+          <div class="diamond-shine"></div>
+        </div>
       </div>
       <div class="object-label">Rombo</div>
       <div class="object-id">Objeto #6</div>
@@ -356,15 +364,80 @@
       getSelectedObject,
       clearSelection,
       sendObjectSelection
-    };
-
-    // Aplicar efectos 3D mejorados después de cargar
+    };    // Aplicar efectos 3D mejorados después de cargar
     document.addEventListener('DOMContentLoaded', () => {
       // Agregar perspectiva a los contenedores 3D
       document.querySelectorAll('.object-3d').forEach(container => {
-        container.style.perspective = '200px';
+        container.style.perspective = '500px';
         container.style.perspectiveOrigin = 'center center';
       });
+
+      // Efecto de mouse tracking para objetos 3D
+      objectCards.forEach(card => {
+        const object3D = card.querySelector('.object-3d');
+        
+        card.addEventListener('mousemove', (e) => {
+          if (!card.classList.contains('selected')) return;
+          
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          
+          const rotateX = (y - centerY) / 10;
+          const rotateY = (centerX - x) / 10;
+          
+          object3D.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.1)`;
+        });
+        
+        card.addEventListener('mouseleave', () => {
+          object3D.style.transform = '';
+        });
+      });
+
+      // Agregar efecto de partículas al seleccionar (opcional)
+      function createSparkle(element) {
+        const sparkle = document.createElement('div');
+        sparkle.style.cssText = `
+          position: absolute;
+          width: 4px;
+          height: 4px;
+          background: rgba(255, 255, 255, 0.8);
+          border-radius: 50%;
+          pointer-events: none;
+          animation: sparkle-fade 1s ease-out forwards;
+          top: ${Math.random() * 100}%;
+          left: ${Math.random() * 100}%;
+        `;
+        
+        element.appendChild(sparkle);
+        setTimeout(() => sparkle.remove(), 1000);
+      }
+
+      // CSS para la animación de partículas
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes sparkle-fade {
+          0% { opacity: 1; transform: scale(0) translateY(0); }
+          50% { opacity: 1; transform: scale(1) translateY(-20px); }
+          100% { opacity: 0; transform: scale(0) translateY(-40px); }
+        }
+      `;
+      document.head.appendChild(style);
+
+      // Agregar sparkles al seleccionar
+      const originalSelectObject = window.selectObject || selectObject;
+      window.selectObject = function(objectId) {
+        originalSelectObject(objectId);
+        const selectedCard = document.querySelector(`[data-object-id="${objectId}"]`);
+        if (selectedCard) {
+          for (let i = 0; i < 5; i++) {
+            setTimeout(() => createSparkle(selectedCard), i * 100);
+          }
+        }
+      };
     });
   </script>
 </body>
