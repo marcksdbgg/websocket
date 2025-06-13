@@ -38,16 +38,81 @@
       margin: 10px 0 0 0;
       color: #e0e0e0;
       font-weight: 300;
-    }
-
-    .objects-container {
+    }    .objects-container {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       grid-template-rows: repeat(2, 1fr);
       gap: 30px;
       padding: 40px;
-      height: calc(100vh - 160px);
+      height: calc(100vh - 260px); /* Reducir altura para la nueva sección */
       box-sizing: border-box;
+    }
+
+    /* Sección de información del evaluado */
+    .evaluado-info {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 300px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 15px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      font-family: monospace;
+      display: none; /* Oculto por defecto */
+    }
+
+    .evaluado-info.visible {
+      display: block;
+      animation: slideInRight 0.3s ease-out;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .info-title {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #00ff88;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+
+    .info-label {
+      color: #e0e0e0;
+      font-size: 0.9em;
+    }
+
+    .info-value {
+      color: #fff;
+      font-weight: bold;
+      font-size: 1em;
+    }
+
+    .value-red {
+      color: #ff5722;
+    }
+
+    .value-blue {
+      color: #2196f3;
     }
 
     .object-card {
@@ -115,23 +180,37 @@
 
     .status.disconnected {
       border-left: 4px solid #ff4444;
-    }
-
-    /* Responsive */
+    }    /* Responsive */
     @media (max-width: 768px) {
       .objects-container {
         grid-template-columns: repeat(2, 1fr);
         grid-template-rows: repeat(3, 1fr);
         gap: 20px;
         padding: 20px;
+        height: calc(100vh - 200px);
       }
       
       .title {
         font-size: 2em;
       }
-        .object-3d {
+      
+      .object-3d {
         width: 60px;
         height: 60px;
+      }
+      
+      .evaluado-info {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        font-size: 0.9em;
+      }
+      
+      .info-item {
+        margin-bottom: 8px;
+        padding: 6px;
       }
     }
   </style>
@@ -201,6 +280,26 @@
       </div>
       <div class="object-label">Rombo</div>
       <div class="object-id">Objeto #6</div>
+    </div>  </div>
+
+  <!-- Información del evaluado -->
+  <div class="evaluado-info" id="evaluadoInfo">
+    <div class="info-title">📊 Información del Evaluado</div>
+    <div class="info-item">
+      <span class="info-label">Objeto Seleccionado:</span>
+      <span class="info-value" id="selectedObjectName">-</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Valor Rojo:</span>
+      <span class="info-value value-red" id="valueRedDisplay">0</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Valor Azul:</span>
+      <span class="info-value value-blue" id="valueBlueDisplay">0</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Estado:</span>
+      <span class="info-value" id="evaluadoStatus">Esperando...</span>
     </div>
   </div>
 
@@ -208,20 +307,21 @@
     🔴 WebSocket: Desconectado
   </div>
 
-  <script>
-    /* ---------------------------------
+  <script>    /* ---------------------------------
        Conexión WebSocket
     -----------------------------------*/
     let ws = null;
+    let wsEvaluado = null; // Nueva conexión para recibir datos del evaluado
     const statusElement = document.getElementById('status');
+    const evaluadoInfoElement = document.getElementById('evaluadoInfo');
     
     function connectWebSocket() {
       try {
-        // Usar la misma URL base que el index.html pero adaptada para este control
+        // Conexión principal (para enviar selección de objetos)
         ws = new WebSocket('ws://127.0.0.1:4649');
         
         ws.addEventListener('open', () => {
-          console.log('WebSocket conectado - Control EEG');
+          console.log('WebSocket Control conectado');
           updateStatus('🟢 WebSocket: Conectado', 'connected');
         });
         
@@ -233,9 +333,34 @@
         ws.addEventListener('close', (e) => {
           console.log('WebSocket cerrado:', e);
           updateStatus('🔴 WebSocket: Desconectado', 'disconnected');
-          
-          // Intentar reconectar después de 3 segundos
           setTimeout(connectWebSocket, 3000);
+        });
+
+        // Conexión secundaria para recibir datos del evaluado
+        wsEvaluado = new WebSocket('ws://127.0.0.1:4649');
+        
+        wsEvaluado.addEventListener('open', () => {
+          console.log('WebSocket Evaluado conectado');
+        });
+        
+        wsEvaluado.addEventListener('message', (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            updateEvaluadoData(data);
+          } catch (error) {
+            console.error('Error parsing evaluado data:', error);
+          }
+        });
+        
+        wsEvaluado.addEventListener('error', (e) => {
+          console.error('WebSocket Evaluado error:', e);
+        });
+        
+        wsEvaluado.addEventListener('close', (e) => {
+          console.log('WebSocket Evaluado cerrado');
+          setTimeout(() => {
+            wsEvaluado = new WebSocket('ws://127.0.0.1:4649');
+          }, 3000);
         });
         
       } catch (error) {
@@ -243,20 +368,67 @@
         updateStatus('🔴 WebSocket: Error', 'disconnected');
         setTimeout(connectWebSocket, 3000);
       }
-    }
-
-    function updateStatus(message, statusClass) {
+    }    function updateStatus(message, statusClass) {
       statusElement.textContent = message;
       statusElement.className = `status ${statusClass}`;
     }
 
     /* ---------------------------------
+       Datos del evaluado en tiempo real
+    -----------------------------------*/
+    let evaluadoData = {
+      valueRed: 0,
+      valueBlue: 0,
+      lastUpdate: null
+    };
+
+    function updateEvaluadoData(data) {
+      // Actualizar datos según el formato del index.html
+      if (data.ball === 'red') {
+        evaluadoData.valueRed = Math.round(data.y * 100);
+      } else if (data.ball === 'blue') {
+        evaluadoData.valueBlue = Math.round(data.y * 100);
+      }
+      
+      evaluadoData.lastUpdate = new Date();
+      updateEvaluadoDisplay();
+    }
+
+    function updateEvaluadoDisplay() {
+      document.getElementById('valueRedDisplay').textContent = evaluadoData.valueRed;
+      document.getElementById('valueBlueDisplay').textContent = evaluadoData.valueBlue;
+      
+      // Actualizar estado basado en actividad reciente
+      const now = new Date();
+      const timeSinceUpdate = evaluadoData.lastUpdate ? now - evaluadoData.lastUpdate : Infinity;
+      
+      let status = 'Inactivo';
+      if (timeSinceUpdate < 1000) {
+        status = '🟢 Activo';
+      } else if (timeSinceUpdate < 5000) {
+        status = '🟡 Reciente';
+      } else if (timeSinceUpdate < 30000) {
+        status = '🔴 Inactivo';
+      }
+      
+      document.getElementById('evaluadoStatus').textContent = status;
+    }
+
+    // Nombres de los objetos
+    const objectNames = {
+      '1': 'Cubo',
+      '2': 'Esfera',
+      '3': 'Pirámide',
+      '4': 'Cilindro',
+      '5': 'Octaedro',
+      '6': 'Rombo'
+    };
+
+    /* ---------------------------------
        Variables de estado
     -----------------------------------*/
     let selectedObjectId = null;
-    const objectCards = document.querySelectorAll('.object-card');
-
-    /* ---------------------------------
+    const objectCards = document.querySelectorAll('.object-card');    /* ---------------------------------
        Manejo de selección de objetos
     -----------------------------------*/
     function selectObject(objectId) {
@@ -271,10 +443,17 @@
         selectedCard.classList.add('selected');
         selectedObjectId = objectId;
         
+        // Actualizar información del objeto seleccionado
+        const objectName = objectNames[objectId] || `Objeto ${objectId}`;
+        document.getElementById('selectedObjectName').textContent = objectName;
+        
+        // Mostrar panel de información
+        evaluadoInfoElement.classList.add('visible');
+        
         // Enviar selección a Unity
         sendObjectSelection(objectId);
         
-        console.log(`Objeto ${objectId} seleccionado`);
+        console.log(`Objeto ${objectId} (${objectName}) seleccionado`);
       }
     }
 
@@ -350,95 +529,28 @@
     // Función para obtener el objeto actualmente seleccionado
     function getSelectedObject() {
       return selectedObjectId;
-    }
-
-    // Función para limpiar selección
+    }    // Función para limpiar selección
     function clearSelection() {
       objectCards.forEach(card => {
         card.classList.remove('selected');
       });
       selectedObjectId = null;
-    }    // Exponer funciones globalmente para debugging
+      
+      // Ocultar panel de información
+      evaluadoInfoElement.classList.remove('visible');
+      document.getElementById('selectedObjectName').textContent = '-';
+    }
+
+    // Actualizar estado del evaluado periódicamente
+    setInterval(updateEvaluadoDisplay, 1000);    // Exponer funciones globalmente para debugging
     window.EEGControl = {
       selectObject,
       getSelectedObject,
       clearSelection,
-      sendObjectSelection
-    };    // Aplicar efectos 3D mejorados después de cargar
-    document.addEventListener('DOMContentLoaded', () => {
-      // Agregar perspectiva a los contenedores 3D
-      document.querySelectorAll('.object-3d').forEach(container => {
-        container.style.perspective = '500px';
-        container.style.perspectiveOrigin = 'center center';
-      });
-
-      // Efecto de mouse tracking para objetos 3D
-      objectCards.forEach(card => {
-        const object3D = card.querySelector('.object-3d');
-        
-        card.addEventListener('mousemove', (e) => {
-          if (!card.classList.contains('selected')) return;
-          
-          const rect = card.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-          
-          const centerX = rect.width / 2;
-          const centerY = rect.height / 2;
-          
-          const rotateX = (y - centerY) / 10;
-          const rotateY = (centerX - x) / 10;
-          
-          object3D.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.1)`;
-        });
-        
-        card.addEventListener('mouseleave', () => {
-          object3D.style.transform = '';
-        });
-      });
-
-      // Agregar efecto de partículas al seleccionar (opcional)
-      function createSparkle(element) {
-        const sparkle = document.createElement('div');
-        sparkle.style.cssText = `
-          position: absolute;
-          width: 4px;
-          height: 4px;
-          background: rgba(255, 255, 255, 0.8);
-          border-radius: 50%;
-          pointer-events: none;
-          animation: sparkle-fade 1s ease-out forwards;
-          top: ${Math.random() * 100}%;
-          left: ${Math.random() * 100}%;
-        `;
-        
-        element.appendChild(sparkle);
-        setTimeout(() => sparkle.remove(), 1000);
-      }
-
-      // CSS para la animación de partículas
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes sparkle-fade {
-          0% { opacity: 1; transform: scale(0) translateY(0); }
-          50% { opacity: 1; transform: scale(1) translateY(-20px); }
-          100% { opacity: 0; transform: scale(0) translateY(-40px); }
-        }
-      `;
-      document.head.appendChild(style);
-
-      // Agregar sparkles al seleccionar
-      const originalSelectObject = window.selectObject || selectObject;
-      window.selectObject = function(objectId) {
-        originalSelectObject(objectId);
-        const selectedCard = document.querySelector(`[data-object-id="${objectId}"]`);
-        if (selectedCard) {
-          for (let i = 0; i < 5; i++) {
-            setTimeout(() => createSparkle(selectedCard), i * 100);
-          }
-        }
-      };
-    });
+      sendObjectSelection,
+      updateEvaluadoData,
+      evaluadoData
+    };
   </script>
 </body>
 </html>
