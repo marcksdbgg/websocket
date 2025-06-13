@@ -46,45 +46,64 @@
       padding: 40px;
       height: calc(100vh - 260px); /* Reducir altura para la nueva sección */
       box-sizing: border-box;
-    }
-
-    /* Sección de información del evaluado */
+    }    /* Sección de información del evaluado - Mejor posicionamiento UI/UX */
     .evaluado-info {
       position: fixed;
-      bottom: 80px;
-      right: 20px;
-      width: 300px;
-      background: rgba(0, 0, 0, 0.8);
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      top: 20px;
+      left: 20px;
+      width: 280px;
+      background: rgba(0, 0, 0, 0.9);
+      border: 2px solid rgba(0, 255, 136, 0.5);
       border-radius: 15px;
-      padding: 20px;
-      backdrop-filter: blur(10px);
+      padding: 15px;
+      backdrop-filter: blur(15px);
       font-family: monospace;
       display: none; /* Oculto por defecto */
-    }
-
-    .evaluado-info.visible {
+      z-index: 1000;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }    .evaluado-info.visible {
       display: block;
-      animation: slideInRight 0.3s ease-out;
-    }
-
-    @keyframes slideInRight {
+      animation: slideInLeft 0.3s ease-out;
+    }@keyframes slideInLeft {
       from {
-        transform: translateX(100%);
+        transform: translateX(-100%);
         opacity: 0;
       }
       to {
         transform: translateX(0);
         opacity: 1;
       }
-    }
-
-    .info-title {
+    }    .info-title {
       font-size: 1.1em;
       font-weight: bold;
       color: #00ff88;
       margin-bottom: 15px;
       text-align: center;
+      position: relative;
+    }
+
+    .close-info-btn {
+      position: absolute;
+      top: -2px;
+      right: 0;
+      background: none;
+      border: none;
+      color: #ff4444;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+    }
+
+    .close-info-btn:hover {
+      background: rgba(255, 68, 68, 0.2);
+      transform: scale(1.1);
     }
 
     .info-item {
@@ -105,14 +124,8 @@
       color: #fff;
       font-weight: bold;
       font-size: 1em;
-    }
-
-    .value-red {
+    }    .value-red {
       color: #ff5722;
-    }
-
-    .value-blue {
-      color: #2196f3;
     }
 
     .object-card {
@@ -181,13 +194,13 @@
     .status.disconnected {
       border-left: 4px solid #ff4444;
     }    /* Responsive */
-    @media (max-width: 768px) {
-      .objects-container {
+    @media (max-width: 768px) {      .objects-container {
         grid-template-columns: repeat(2, 1fr);
         grid-template-rows: repeat(3, 1fr);
         gap: 20px;
         padding: 20px;
-        height: calc(100vh - 200px);
+        height: calc(100vh - 240px); /* Más espacio para la info superior */
+        margin-top: 60px; /* Espacio para la ventana de información */
       }
       
       .title {
@@ -198,14 +211,15 @@
         width: 60px;
         height: 60px;
       }
-      
-      .evaluado-info {
+        .evaluado-info {
         position: fixed;
-        bottom: 10px;
+        top: 10px;
         left: 10px;
         right: 10px;
         width: auto;
-        font-size: 0.9em;
+        font-size: 0.85em;
+        padding: 12px;
+        z-index: 1000;
       }
       
       .info-item {
@@ -281,21 +295,18 @@
       <div class="object-label">Rombo</div>
       <div class="object-id">Objeto #6</div>
     </div>  </div>
-
   <!-- Información del evaluado -->
   <div class="evaluado-info" id="evaluadoInfo">
-    <div class="info-title">📊 Información del Evaluado</div>
-    <div class="info-item">
+    <div class="info-title">
+      📊 Información del Evaluado
+      <button class="close-info-btn" onclick="clearSelection()" title="Cerrar panel">×</button>
+    </div>    <div class="info-item">
       <span class="info-label">Objeto Seleccionado:</span>
       <span class="info-value" id="selectedObjectName">-</span>
     </div>
     <div class="info-item">
-      <span class="info-label">Valor Rojo:</span>
-      <span class="info-value value-red" id="valueRedDisplay">0</span>
-    </div>
-    <div class="info-item">
-      <span class="info-label">Valor Azul:</span>
-      <span class="info-value value-blue" id="valueBlueDisplay">0</span>
+      <span class="info-label">Concentración:</span>
+      <span class="info-value value-red" id="concentrationDisplay">0</span>
     </div>
     <div class="info-item">
       <span class="info-label">Estado:</span>
@@ -371,32 +382,25 @@
     }    function updateStatus(message, statusClass) {
       statusElement.textContent = message;
       statusElement.className = `status ${statusClass}`;
-    }
-
-    /* ---------------------------------
+    }    /* ---------------------------------
        Datos del evaluado en tiempo real
     -----------------------------------*/
     let evaluadoData = {
-      valueRed: 0,
-      valueBlue: 0,
+      concentration: 0,
       lastUpdate: null
     };
 
     function updateEvaluadoData(data) {
-      // Actualizar datos según el formato del index.html
+      // Actualizar datos según el formato del index.html - solo usar valor rojo para concentración
       if (data.ball === 'red') {
-        evaluadoData.valueRed = Math.round(data.y * 100);
-      } else if (data.ball === 'blue') {
-        evaluadoData.valueBlue = Math.round(data.y * 100);
+        evaluadoData.concentration = Math.round(data.y * 100);
+        evaluadoData.lastUpdate = new Date();
+        updateEvaluadoDisplay();
       }
-      
-      evaluadoData.lastUpdate = new Date();
-      updateEvaluadoDisplay();
     }
 
     function updateEvaluadoDisplay() {
-      document.getElementById('valueRedDisplay').textContent = evaluadoData.valueRed;
-      document.getElementById('valueBlueDisplay').textContent = evaluadoData.valueBlue;
+      document.getElementById('concentrationDisplay').textContent = evaluadoData.concentration;
       
       // Actualizar estado basado en actividad reciente
       const now = new Date();
@@ -508,13 +512,15 @@
         e.preventDefault();
         selectObject(key);
       }
-    });
-
-    /* ---------------------------------
+    });    /* ---------------------------------
        Inicialización
     -----------------------------------*/
     document.addEventListener('DOMContentLoaded', () => {
       console.log('Control EEG iniciado');
+      
+      // Mejorar objetos 3D
+      enhance3DObjects();
+      
       connectWebSocket();
       
       // Seleccionar objeto 1 por defecto
@@ -542,7 +548,57 @@
     }
 
     // Actualizar estado del evaluado periódicamente
-    setInterval(updateEvaluadoDisplay, 1000);    // Exponer funciones globalmente para debugging
+    setInterval(updateEvaluadoDisplay, 1000);    /* ---------------------------------
+       Mejoras dinámicas para objetos 3D
+    -----------------------------------*/
+    function enhance3DObjects() {
+      // Agregar cara lateral al octaedro
+      document.querySelectorAll('.octahedron').forEach(octahedron => {
+        if (!octahedron.querySelector('.octahedron-side')) {
+          const side = document.createElement('div');
+          side.className = 'octahedron-side';
+          octahedron.appendChild(side);
+        }
+      });
+
+      // Mejorar la rotación de los objetos seleccionados
+      document.querySelectorAll('.object-3d').forEach(obj => {
+        obj.addEventListener('mouseenter', () => {
+          if (obj.closest('.object-card').classList.contains('selected')) {
+            obj.style.animationDuration = '2s';
+          }
+        });
+        
+        obj.addEventListener('mouseleave', () => {
+          obj.style.animationDuration = '3s';
+        });
+      });
+
+      // Agregar efecto de iluminación dinámica
+      const style = document.createElement('style');
+      style.textContent = `
+        .object-card.selected .cube-face {
+          box-shadow: inset -2px -2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .object-card.selected .sphere {
+          box-shadow: 
+            0 8px 25px rgba(76, 175, 80, 0.6),
+            inset -10px -10px 20px rgba(46, 125, 50, 0.4);
+        }
+        
+        .object-card.selected .cylinder {
+          box-shadow: 
+            0 8px 25px rgba(156, 39, 176, 0.6),
+            inset -8px 0 16px rgba(123, 31, 162, 0.4);
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    enhance3DObjects();
+
+    // Exponer funciones globalmente para debugging
     window.EEGControl = {
       selectObject,
       getSelectedObject,
