@@ -348,7 +348,7 @@
         });
 
         // Conexión secundaria para recibir datos del evaluado
-        wsEvaluado = new WebSocket('ws://127.0.0.1:4649');
+        wsEvaluado = new WebSocket('ws://95b2-168-121-47-142.ngrok-free.app');
         
         wsEvaluado.addEventListener('open', () => {
           console.log('WebSocket Evaluado conectado');
@@ -370,7 +370,7 @@
         wsEvaluado.addEventListener('close', (e) => {
           console.log('WebSocket Evaluado cerrado');
           setTimeout(() => {
-            wsEvaluado = new WebSocket('ws://127.0.0.1:4649');
+            wsEvaluado = new WebSocket('ws://95b2-168-121-47-142.ngrok-free.app');
           }, 3000);
         });
         
