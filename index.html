@@ -30,16 +30,16 @@
     }
   </style>
 </head>
-<body>
-  <div id="debug">0</div>
+<body>  <div id="debug">0</div>
+
+  <!-- Configuración WebSocket -->
+  <script src="ws-config.js"></script>
 
   <script>
     /* ---------------------------------
        Conexión WebSocket
     -----------------------------------*/
-    const ws = new WebSocket(
-      'wss://95b2-168-121-47-142.ngrok-free.app'
-    );
+    const ws = new WebSocket(getWebSocketURL());
     ws.addEventListener('open', () => console.log('WebSocket conectado'));
     ws.addEventListener('error', e => console.error('WebSocket error:', e));
 
