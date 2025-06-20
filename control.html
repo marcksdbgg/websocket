@@ -128,6 +128,18 @@
       color: #ff5722;
     }
 
+    .value-blue {
+      color: #2196f3;
+    }
+
+    .value-green {
+      color: #4caf50;
+    }
+
+    .value-orange {
+      color: #ff9800;
+    }
+
     .object-card {
       background: rgba(255, 255, 255, 0.1);
       border: 2px solid rgba(255, 255, 255, 0.3);
@@ -303,10 +315,16 @@
     </div>    <div class="info-item">
       <span class="info-label">Objeto Seleccionado:</span>
       <span class="info-value" id="selectedObjectName">-</span>
-    </div>
-    <div class="info-item">
+    </div>    <div class="info-item">
       <span class="info-label">Concentración:</span>
       <span class="info-value value-red" id="concentrationDisplay">0</span>
+    </div>    <div class="info-item">
+      <span class="info-label">Nivel de Atención:</span>
+      <span class="info-value value-blue" id="attentionDisplay">0</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Estabilidad del Foco:</span>
+      <span class="info-value value-green" id="stabilityDisplay">0</span>
     </div>
     <div class="info-item">
       <span class="info-label">Estado:</span>
@@ -354,11 +372,19 @@
         wsEvaluado.addEventListener('open', () => {
           console.log('WebSocket Evaluado conectado');
         });
-        
-        wsEvaluado.addEventListener('message', (event) => {
+          wsEvaluado.addEventListener('message', (event) => {
           try {
             const data = JSON.parse(event.data);
-            updateEvaluadoData(data);
+            console.log('Datos recibidos:', data);
+            
+            // Procesar diferentes tipos de mensajes
+            if (data.type === 'eeg_data') {
+              // Datos enriquecidos desde Unity
+              updateEvaluadoDataEnhanced(data);
+            } else if (data.ball) {
+              // Datos básicos desde index.html
+              updateEvaluadoData(data);
+            }
           } catch (error) {
             console.error('Error parsing evaluado data:', error);
           }
@@ -385,9 +411,10 @@
       statusElement.className = `status ${statusClass}`;
     }    /* ---------------------------------
        Datos del evaluado en tiempo real
-    -----------------------------------*/
-    let evaluadoData = {
+    -----------------------------------*/    let evaluadoData = {
       concentration: 0,
+      attention: 0,
+      focusStability: 0,
       lastUpdate: null
     };
 
@@ -396,12 +423,28 @@
       if (data.ball === 'red') {
         evaluadoData.concentration = Math.round(data.y * 100);
         evaluadoData.lastUpdate = new Date();
+        
+        // Calcular métricas simuladas basadas en concentración
+        evaluadoData.attention = Math.round(evaluadoData.concentration * 0.85 + Math.random() * 10);
+        evaluadoData.focusStability = Math.round(75 + Math.random() * 20);
+        
         updateEvaluadoDisplay();
       }
     }
 
-    function updateEvaluadoDisplay() {
+    function updateEvaluadoDataEnhanced(data) {
+      // Actualizar con datos enriquecidos desde Unity
+      evaluadoData.concentration = data.concentration || 0;
+      evaluadoData.attention = data.attention || 0;
+      evaluadoData.focusStability = data.focusStability || 0;
+      evaluadoData.lastUpdate = new Date();
+      
+      console.log('Datos EEG actualizados:', evaluadoData);
+      updateEvaluadoDisplay();
+    }    function updateEvaluadoDisplay() {
       document.getElementById('concentrationDisplay').textContent = evaluadoData.concentration;
+      document.getElementById('attentionDisplay').textContent = evaluadoData.attention;
+      document.getElementById('stabilityDisplay').textContent = evaluadoData.focusStability;
       
       // Actualizar estado basado en actividad reciente
       const now = new Date();
@@ -414,6 +457,17 @@
         status = '🟡 Reciente';
       } else if (timeSinceUpdate < 30000) {
         status = '🔴 Inactivo';
+      }
+      
+      // Agregar indicadores adicionales basados en métricas
+      if (evaluadoData.concentration > 70) {
+        status += ' - Alta concentración';
+      } else if (evaluadoData.concentration < 30) {
+        status += ' - Baja concentración';
+      }
+      
+      if (evaluadoData.focusStability < 50) {
+        status += ' - Foco inestable';
       }
       
       document.getElementById('evaluadoStatus').textContent = status;
