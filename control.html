@@ -318,18 +318,21 @@
     🔴 WebSocket: Desconectado
   </div>
 
-  <script>    /* ---------------------------------
+  <!-- Configuración WebSocket -->
+  <script src="ws-config.js"></script>
+
+  <script>
+    /* ---------------------------------
        Conexión WebSocket
     -----------------------------------*/
     let ws = null;
     let wsEvaluado = null; // Nueva conexión para recibir datos del evaluado
     const statusElement = document.getElementById('status');
     const evaluadoInfoElement = document.getElementById('evaluadoInfo');
-    
-    function connectWebSocket() {
+      function connectWebSocket() {
       try {
         // Conexión principal (para enviar selección de objetos)
-        ws = new WebSocket('wss://95b2-168-121-47-142.ngrok-free.app');
+        ws = new WebSocket(getWebSocketURL());
         
         ws.addEventListener('open', () => {
           console.log('WebSocket Control conectado');
@@ -345,10 +348,8 @@
           console.log('WebSocket cerrado:', e);
           updateStatus('🔴 WebSocket: Desconectado', 'disconnected');
           setTimeout(connectWebSocket, 3000);
-        });
-
-        // Conexión secundaria para recibir datos del evaluado
-        wsEvaluado = new WebSocket('wss://95b2-168-121-47-142.ngrok-free.app');
+        });        // Conexión secundaria para recibir datos del evaluado
+        wsEvaluado = new WebSocket(getWebSocketURL());
         
         wsEvaluado.addEventListener('open', () => {
           console.log('WebSocket Evaluado conectado');
