@@ -11,7 +11,7 @@
 
 // ===== CONFIGURACIÓN PRINCIPAL =====
 // Solo cambia esta URL cuando tengas un nuevo túnel de ngrok
-const WS_BASE_URL = 'e174-179-6-164-31.ngrok-free.app ';
+const WS_BASE_URL = '0276-168-121-47-142.ngrok-free.app';
 
 // ===== CONFIGURACIÓN AVANZADA (opcional) =====
 const WS_ADVANCED_CONFIG = {
